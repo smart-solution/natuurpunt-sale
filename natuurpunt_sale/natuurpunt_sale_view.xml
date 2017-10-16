@@ -164,7 +164,7 @@
                <field name="context">{}</field>
         </record>
 
-	<menuitem id="menu_sales_order_lines" parent="base.menu_sales" action="action_sale_order_line_np" sequence="120" groups="sale.group_invoice_so_lines"/>
+	<menuitem id="menu_sales_order_lines" parent="base.menu_sales" action="action_sale_order_line_np" sequence="120" groups="base.group_sale_salesman_all_leads"/>
 	<menuitem id="sale.menu_invoicing_sales_order_lines" parent="account.menu_finance_receivables" action="sale.action_order_line_tree2" sequence="120" groups="sale.group_invoice_so_lines"/>
 
         <record id="view_sale_order_cancel_reason_tree" model="ir.ui.view">
