@@ -1,0 +1,195 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+
+        <record id="view_sale_order_add_line_wizard" model="ir.ui.view">
+            <field name="name">Add Sale Order Line</field>
+            <field name="model">sale.order.add.line</field>
+            <field name="arch" type="xml">
+                <form string="Sale Order Add Line" version="7.0">
+		    <group colspan="4">
+		        <group colspan="4">
+			    <field name="state" invisible="1"/>
+			    <field name="order_id" invisible="1"/>
+			    <field name="product_id" on_change="onchange_product_id(product_id)"/>
+			    <field name="name"/>
+			</group>
+			<group colspan="6">
+			    <field name="analytic_dimension_1_id"/>
+			    <field name="analytic_dimension_2_id"/>
+			    <field name="analytic_dimension_3_id"/>
+			</group>
+			<group colspan="4">
+			    <field name="product_uom_qty" string="Qty"/>
+			    <field name="product_uom" string="Unit of Measure" groups="product.group_uom"/>
+			</group>
+		        <group colspan="4">
+			    <field name="tax_id"/>
+			    <field name="price_unit"/>
+			</group>
+                    </group>
+                    <footer>
+                        <button name="order_add_line" string="Add Order Line" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_sale_order_add_line" model="ir.actions.act_window">
+               <field name="name">Sale Order Add Line</field>
+               <field name="type">ir.actions.act_window</field>
+               <field name="res_model">sale.order.add.line</field>
+               <field name="view_type">form</field>
+               <field name="view_mode">form</field>
+               <field name="context">{'default_order_id':active_id}</field>
+               <field name="target">new</field>
+        </record>
+
+<!--
+        <record id="view_sale_order_add_line_wizard" model="ir.ui.view">
+            <field name="name">Add Order Line</field>
+            <field name="model">sale.order.line</field>
+            <field name="arch" type="xml">
+                <form string="Sale Order Add Line">
+                    <group>
+			    <field name="state"/>
+			    <field name="product_id"/>
+			    <field name="name"/>
+			    <field name="analytic_dimension_1_id"/>
+			    <field name="analytic_dimension_2_id"/>
+			    <field name="analytic_dimension_3_id"/>
+			    <field name="product_uom_qty" string="Qty"/>
+			    <field name="product_uom" string="Unit of Measure" groups="product.group_uom"/>
+			    <field name="tax_id"/>
+			    <field name="price_unit"/>
+			    <field name="delivered_qty"/>
+			    <field name="delivered_flag"/>
+                    </group>
+                    <footer>
+                        <button name="order_add_line" string="Add Order Line" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_sale_order_add_line" model="ir.actions.act_window">
+               <field name="name">Add Sale Order Line</field>
+               <field name="type">ir.actions.act_window</field>
+               <field name="res_model">sale.order.line</field>
+               <field name="view_type">form</field>
+               <field name="view_mode">form</field>
+               <field name="view_id" ref="view_sale_order_add_line_wizard"/> 
+               <field name="context">{'default_order_id':active_id}</field>
+               <field name="target">new</field>
+        </record>
+-->
+
+        <record id="view_order_form_np" model="ir.ui.view">
+            <field name='name'>view.sale.order.np.form</field>
+            <field name='model'>sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name='arch' type='xml'>
+                <button name="action_cancel" position="before">
+                    <button name="in_progress" string="In uitvoering" states="progress" type="object"/>
+                </button>
+		<xpath expr="//button[@string='Create Invoice']" position="attributes">
+			<attribute name="states"/>
+                        <attribute name="invisible">1</attribute>
+                </xpath>
+		<xpath expr="//button[@name='action_cancel']" position="attributes">
+			<attribute name="states">progress</attribute>
+                </xpath>
+		<xpath expr="//button[@name='action_cancel']" position="after">
+                    <button name="%(action_sale_order_add_line)d" string="Add Order Line" type="action" icon="gtk-execute" states="progress,manual"/>
+                </xpath>
+		<field name="fiscal_position" position="attributes">
+                        <attribute name="invisible">1</attribute>
+		</field>
+            </field>
+        </record>
+
+        <record id="view_order_form_np2" model="ir.ui.view">
+            <field name='name'>view.sale.order.np2.form</field>
+            <field name='model'>sale.order</field>
+            <field name="inherit_id" ref="sale_stock.view_order_form_inherit"/>
+            <field name='arch' type='xml'>
+		<field name="shipped" position="replace">
+			<field name="shipped" invisible="1"/>	
+			<field name="cancel_reason_id"/>
+			<field name="has_deposit"/>
+			<field name="deposit_amount"/>
+		</field>
+		<field name="incoterm" position="attributes">
+                        <attribute name="invisible">1</attribute>
+		</field>
+            </field>
+        </record>
+
+        <record id="view_sale_order_line_np_tree" model="ir.ui.view">
+            <field name="name">Verkooplijnen</field>
+            <field name="model">sale.order.line</field>
+            <field name="arch" type="xml">
+                <tree string="Sale Order Line Delivery" version="7.0" create="false" edit="true">
+                    <field name="product_id" invisible="1"/>
+                    <field name="order_id"/>
+                    <field name="order_partner_id"/>
+                    <field name="name"/>
+		    <field name="analytic_dimension_1_id" width="10"/>
+                    <field name="analytic_dimension_2_id" width="10"/>
+                    <field name="analytic_dimension_3_id" width="10"/>
+                    <field name="product_uom_qty" string="Qty"/>
+                    <field name="product_uom" string="Unit of Measure" groups="product.group_uom"/>
+                    <field name="salesman_id"/>
+                    <field name="delivered_qty"/>
+                    <field name="delivered_flag"/>
+                    <button name="%(multi_analytical_account.action_sale_order_line_delivery)d" string="Delivery Status" type="action" icon="gtk-execute"/>
+                    <field name="price_subtotal" sum="Total"/>
+                    <field name="state"/>
+                    <field name="invoiced"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_sale_order_line_np" model="ir.actions.act_window">
+               <field name="name">Verkooplijnen</field>
+               <field name="type">ir.actions.act_window</field>
+               <field name="res_model">sale.order.line</field>
+               <field name="view_type">form</field>
+               <field name="view_mode">tree</field>
+               <field name="view_id" ref="view_sale_order_line_np_tree"/>
+               <field name="context">{}</field>
+        </record>
+
+	<menuitem id="menu_sales_order_lines" parent="base.menu_sales" action="action_sale_order_line_np" sequence="120" groups="sale.group_invoice_so_lines"/>
+	<menuitem id="sale.menu_invoicing_sales_order_lines" parent="account.menu_finance_receivables" action="sale.action_order_line_tree2" sequence="120" groups="sale.group_invoice_so_lines"/>
+
+        <record id="view_sale_order_cancel_reason_tree" model="ir.ui.view">
+            <field name="name">sale.order.cancel.reason.tree</field>
+            <field name="model">sale.order.cancel.reason</field>
+            <field name="arch" type="xml">
+                <tree string="Reden annulatie" version="7.0">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_sale_order_cancel_reason" model="ir.actions.act_window">
+               <field name="name">Reden annulatie</field>
+               <field name="type">ir.actions.act_window</field>
+               <field name="res_model">sale.order.cancel.reason</field>
+               <field name="view_type">form</field>
+               <field name="view_mode">tree,form</field>
+               <field name="context">{}</field>
+        </record>
+
+	<menuitem id="menu_sales_order_cancel_reason" parent="base.menu_base_config" action="action_sale_order_cancel_reason" sequence="120" groups="base.group_sale_manager"/>
+
+
+
+    </data>
+</openerp>
+
