@@ -79,6 +79,9 @@ class sale_order_add_line(osv.osv_memory):
 	'analytic_dimension_1_id': fields.many2one('account.analytic.account', 'Dimensie 1'),	
 	'analytic_dimension_2_id': fields.many2one('account.analytic.account', 'Dimensie 2'),	
 	'analytic_dimension_3_id': fields.many2one('account.analytic.account', 'Dimensie 3'),	
+        'analytic_dimension_1_required': fields.boolean("Analytic Dimension 1 Required"),
+        'analytic_dimension_2_required': fields.boolean("Analytic Dimension 2 Required"),
+        'analytic_dimension_3_required': fields.boolean("Analytic Dimension 3 Required"),
         'product_uom_qty': fields.float('Quantity', digits_compute= dp.get_precision('Product UoS'), required=True),
         'product_uom': fields.many2one('product.uom', 'Unit of Measure ', required=True),
         'tax_id': fields.many2many('account.tax', 'sale_order_tax', 'order_line_id', 'tax_id', 'Taxes'),
@@ -123,6 +126,7 @@ class sale_order_add_line(osv.osv_memory):
 	    'tax_id': [(6,0,tax_ids)],
 	    'price_unit': wiz.price_unit,
 	    'order_id': wiz.order_id.id,
+	    'state': 'confirmed',
 	}
 
 	self.pool.get('sale.order.line').create(cr, uid, line_vals)
