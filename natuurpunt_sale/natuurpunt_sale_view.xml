@@ -88,14 +88,28 @@
                <field name="target">new</field>
         </record>
 -->
-
+<!--
+        <record id="view_order_form1_np" model="ir.ui.view">
+            <field name='name'>view.sale.order.np1.form</field>
+            <field name='model'>sale.order</field>
+            <field name="inherit_id" ref="sale_stock.view_order_form_inherit"/>
+            <field name='arch' type='xml'>
+		<field name="picking_policiy" position="attributes">
+                        <attribute name="invisible">1</attribute>
+		</field>
+		<field name="order_policiy" position="attributes">
+                        <attribute name="invisible">1</attribute>
+		</field>
+            </field>
+        </record>
+-->
         <record id="view_order_form_np" model="ir.ui.view">
             <field name='name'>view.sale.order.np.form</field>
             <field name='model'>sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name='arch' type='xml'>
                 <button name="action_cancel" position="before">
-                    <button name="in_progress" string="In uitvoering" states="progress" type="object"/>
+                    <button name="in_progress" string="In uitvoering" states="progress" type="object" class="oe_highlight"/>
                 </button>
 		<xpath expr="//button[@string='Create Invoice']" position="attributes">
 			<attribute name="states"/>
@@ -108,9 +122,15 @@
 			<attribute name="states">progress</attribute>
                 </xpath>
 		<xpath expr="//button[@name='action_cancel']" position="after">
+			<button name='action_force_close' string='Gesloten' type='object' states="draft,progress,manual,done"/>
+                </xpath>
+		<xpath expr="//button[@name='action_cancel']" position="after">
                     <button name="%(action_sale_order_add_line)d" string="Add Order Line" type="action" icon="gtk-execute" states="progress,manual"/>
                 </xpath>
 		<field name="fiscal_position" position="attributes">
+                        <attribute name="invisible">1</attribute>
+		</field>
+		<field name="origin" position="attributes">
                         <attribute name="invisible">1</attribute>
 		</field>
             </field>
@@ -126,8 +146,17 @@
 			<field name="cancel_reason_id"/>
 			<field name="has_deposit"/>
 			<field name="deposit_amount"/>
+			<field name="deposit_credit_note_id"/>
+		        <button name="deposit_create" string="Borg credit nota maken" type="object" attrs="{'invisible':[('has_deposit','!=',True)]}"/>
+			
 		</field>
 		<field name="incoterm" position="attributes">
+                        <attribute name="invisible">1</attribute>
+		</field>
+		<field name="picking_policy" position="attributes">
+                        <attribute name="invisible">1</attribute>
+		</field>
+		<field name="order_policy" position="attributes">
                         <attribute name="invisible">1</attribute>
 		</field>
             </field>
@@ -191,6 +220,20 @@
         </record>
 
 	<menuitem id="menu_sales_order_cancel_reason" parent="base.menu_base_config" action="action_sale_order_cancel_reason" sequence="120" groups="base.group_sale_manager"/>
+
+        <record id="view_sales_order_line_np_filter" model="ir.ui.view">
+            <field name="name">sale.order.np.line</field>
+            <field name="model">sale.order.line</field>
+            <field name="inherit_id" ref="sale.view_sales_order_line_filter"/>
+            <field name="arch" type="xml">
+		<xpath expr="//filter[@string='My Sales Order Lines']" position="after">
+                        <filter icon="terp-dolar-ok!" name="delivered_flag_ok" string="Not ready for invoicing" domain="[('delivered_flag','=',0)]"/>
+<!--
+                        <filter icon="terp-dolar-ok!" name="delivered_qty_dif" string="Delivered qty smaller then qty" domain="[('delivered_qty','&lt;','product_uom_qty')]"/>
+-->
+                </xpath>
+            </field>
+        </record>
 
 
 
