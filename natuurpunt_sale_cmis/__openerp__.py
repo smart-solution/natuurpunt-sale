@@ -17,7 +17,7 @@
 ############################################################################## 
 
 {
-    "name" : "natuurpunt_sale_mail",
+    "name" : "natuurpunt_sale_cmis",
     "version" : "1.0",
     "author" : "Natuurpunt (joeri.belis@natuurpunt.be)",
     "website" : "www.natuurpunt.be",
