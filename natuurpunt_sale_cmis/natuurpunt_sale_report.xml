@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <report
+            auto="False"
+            id="natuurpunt_sale_order"
+            model="sale.order"
+            name="natuurpunt.sale.order"
+            rml="natuurpunt_sale_cmis/report/natuurpunt_sale_order.rml"
+            string="Natuurpunt Offerte / Order"
+            attachment="((object.name or '').replace('/',''))"
+            attachment_use="True"
+            usage="default"
+            />
+
+    </data>
+</openerp>
