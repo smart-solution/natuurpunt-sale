@@ -184,7 +184,7 @@ class sale_order_mail_compose_message(osv.TransientModel):
         @return: view id, or False if no view found
         """
         res = self.pool.get('ir.model.data').get_object_reference(cr, uid,
-                                                                  'natuurpunt_sale_mail',
+                                                                  'natuurpunt_sale_cmis',
                                                                   'email_compose_message_wizard_np_sale_form')
         return res and res[1] or False
 
