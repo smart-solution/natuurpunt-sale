@@ -47,6 +47,15 @@ class sale_order(osv.osv):
             'attachment_ids': fields.one2many('sale.order.attachment', 'order_id', 'sale order attachment'),
         }
 
+        def copy(self, cr, uid, ids, default=None, context=None):
+            if not default:
+                default = {}
+            default.update({
+                'attachment_ids': False,
+            })
+            return super(sale_order, self).copy(cr, uid, ids, default=default, context=context)
+
+
 class ir_attachment(osv.osv):
 
     _inherit = 'ir.attachment'
@@ -74,5 +83,11 @@ class ir_attachment(osv.osv):
                 sale_order_att_obj.unlink(cr,uid, att_ids, context=context)
         res = super(ir_attachment, self).unlink(cr, uid, ids, context=context)
         return res
+
+    def copy(self, cr, uid, id, default=None, context=None):
+        import pdb; pdb.set_trace()
+        if not default:
+            default = {}
+        return super(ir_attachment, self).copy(cr, uid, id, default, context=context)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
