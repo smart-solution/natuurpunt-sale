@@ -18,11 +18,41 @@ msgstr ""
 "Language: nl_BE\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#. module: natuurpunt_sale_cmis
+#: field:sale.order.attachment,name:0
+msgid "file name"
+msgstr "Bestandsnaam"
 
 #. module: natuurpunt_sale_cmis
-#: selection:sale.order:0
+#: view:sale.order:0
+#: field:sale.order.mail.compose.message,attachment_ids:0
 msgid "Attachments"
+msgstr "Bijlages"
+
+#. module: natuurpunt_sale_cmis
+#: view:sale.order.mail.compose.message:0
+msgid "Subject..."
+msgstr "Onderwerp..."
+
+#. module: natuurpunt_sale_cmis
+#: field:sale.order.mail.compose.message,date:0
+msgid "Date"
+msgstr "Datum"
+
+#. module: natuurpunt_sale_cmis
+#: view:sale.order.mail.compose.message:0
+msgid "Attachment"
 msgstr "Bijlage"
+
+#. module: natuurpunt_sale_cmis
+#: field:sale.order.mail.compose.message,email_from:0
+msgid "From"
+msgstr "Van"
+
+#. module: natuurpunt_sale_cmis
+#: field:sale.order.mail.compose.message,subject:0
+msgid "Subject"
+msgstr "Onderwerp"
 
 #. module: natuurpunt_sale_cmis
 #: report:natuurpunt.sale.order:0
