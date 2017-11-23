@@ -56,4 +56,14 @@ class sale_order(osv.osv):
 
 sale_order()
 
+class sale_order_line_make_invoice(osv.osv_memory):
+    _inherit = 'sale.order.line.make.invoice'
+
+    def _prepare_invoice(self, cr, uid, order, lines, context=None):
+         invoice_vals = super(sale_order_line_make_invoice,self)._prepare_invoice(cr, uid, order, lines, context=context)
+         invoice_vals['customer_contact_id'] = order.customer_contact_id.id
+         invoice_vals['use_company_address'] = order.use_company_address
+         invoice_vals['is_company_with_contact'] = order.is_company_with_contact
+         return invoice_vals
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
