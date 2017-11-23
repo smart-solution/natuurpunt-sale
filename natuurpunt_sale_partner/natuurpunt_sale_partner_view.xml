@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+
+        <record id="view_order_partner_form_np" model="ir.ui.view">
+            <field name='name'>view.sale.order.partner.form.np</field>
+            <field name='model'>sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name='arch' type='xml'>
+                <field name="partner_id" position="after">
+                    <field name="customer_contact_id" 
+                           on_change="onchange_customer_contact_id(partner_id)" 
+                           domain="[('parent_id','=',partner_id)]" 
+                           attrs="{'invisible':[('is_company_with_contact','=',False)]}"/>
+                    <field name="use_company_address" attrs="{'invisible':[('customer_contact_id','=',False)]}"/>
+                    <field name="is_company_with_contact" invisible="1"/>
+                </field>
+                <field name="partner_invoice_id" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+                <field name="partner_shipping_id" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>
+
