@@ -8,13 +8,11 @@
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name='arch' type='xml'>
                 <field name="partner_id" position="after">
-                    <field name="customer_contact_id" 
-                           on_change="onchange_customer_contact_id(partner_id)" 
-                           domain="[('parent_id','=',partner_id)]" 
-                           readonly="[('state','not in',('draft','sent'))]"
+                    <field name="customer_contact_id"
+                           on_change="onchange_customer_contact_id(partner_id)"
+                           domain="[('parent_id','=',partner_id)]"
                            attrs="{'invisible':[('is_company_with_contact','=',False)]}"/>
                     <field name="use_company_address"
-                           readonly="[('state','not in',('draft','sent'))]"
                            attrs="{'invisible':[('customer_contact_id','=',False)]}"/>
                     <field name="is_company_with_contact" invisible="1"/>
                 </field>

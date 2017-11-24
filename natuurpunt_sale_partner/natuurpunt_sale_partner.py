@@ -49,8 +49,8 @@ class sale_order(osv.osv):
         return result
 
     _columns = {
-        'customer_contact_id': fields.many2one('res.partner', 'Contact'),
-        'use_company_address': fields.boolean('Gebruik bedrijfsadres'),
+        'customer_contact_id': fields.many2one('res.partner', 'Contact', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]},),
+        'use_company_address': fields.boolean('Gebruik bedrijfsadres', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]},),
         'is_company_with_contact': fields.boolean('Is company with contact'),
     }
 
