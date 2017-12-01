@@ -29,6 +29,46 @@ from openerp import netsvc
 class sale_order(osv.osv):
     _inherit = "sale.order"
 
+    def _invoiced(self, cursor, user, ids, name, arg, context=None):
+	res = super(sale_order, self)._invoiced(cursor, user, ids, name, arg, context=None)
+	print "_invoiced res:",res
+	
+	for key, value in res.iteritems():
+	    if value:
+		self.pool.get('sale.order').write(cursor, user, [key], {'state':'paid'})
+
+        return res
+
+    def _invoiced_search(self, cursor, user, obj, name, args, context=None):
+        if not len(args):
+            return []
+        clause = ''
+        sale_clause = ''
+        no_invoiced = False
+        for arg in args:
+            if (arg[1] == '=' and arg[2]) or (arg[1] == '!=' and not arg[2]):
+                clause += 'AND inv.state = \'paid\''
+            else:
+                clause += 'AND inv.state != \'cancel\' AND sale.state != \'cancel\'  AND inv.state <> \'paid\'  AND rel.order_id = sale.id '
+                sale_clause = ',  sale_order AS sale '
+                no_invoiced = True
+
+        cursor.execute('SELECT rel.order_id ' \
+                'FROM sale_order_invoice_rel AS rel, account_invoice AS inv '+ sale_clause + \
+                'WHERE rel.invoice_id = inv.id ' + clause)
+        res = cursor.fetchall()
+        if no_invoiced:
+            cursor.execute('SELECT sale.id ' \
+                    'FROM sale_order AS sale ' \
+                    'WHERE sale.id NOT IN ' \
+                        '(SELECT rel.order_id ' \
+                        'FROM sale_order_invoice_rel AS rel) and sale.state != \'cancel\'')
+            res.extend(cursor.fetchall())
+        if not res:
+            return [('id', '=', 0)]
+        return [('id', 'in', [x[0] for x in res])]
+
+
     _columns = {
 	'cancel_reason_id': fields.many2one('sale.order.cancel.reason', 'Reden annulatie'),
 	'has_deposit': fields.boolean('Borg'),
@@ -44,8 +84,12 @@ class sale_order(osv.osv):
             ('invoice_except', 'Invoice Exception'),
             ('done', 'Done'),
 	    ('closed', 'Gesloten'),
+	    ('paid', 'Betaald'),
             ], 'Status', readonly=True, track_visibility='onchange',
             help="Gives the status of the quotation or sales order. \nThe exception status is automatically set when a cancel operation occurs in the processing of a document linked to the sales order. \nThe 'Waiting Schedule' status is set when the invoice is confirmed but waiting for the scheduler to run on the order date.", select=True),
+        'invoiced': fields.function(_invoiced, string='Paid',
+            fnct_search=_invoiced_search, type='boolean', help="It indicates that an invoice has been paid."),
+ 
 
     } 
 
@@ -66,8 +110,6 @@ class sale_order(osv.osv):
     def in_progress(self, cr, uid, ids, context=None):
         for order_id in ids:
             self.write(cr, uid, [order_id], {'state':'manual'})
-#            for line_id in self.pool.get('purchase.order.line').search(cr, uid, [('order_id','=',order_id)]):
-#                self.pool.get('purchase.order.line').write(cr, uid, [line_id], {'state':'done'})
         return True
 
     def write(self, cr, uid, ids, vals, context=None):
@@ -91,66 +133,68 @@ class sale_order(osv.osv):
 
 	return res
 
-    def deposit_create(self, cr, uid, ids, context=None):
 
-	Invoice = self.pool.get('account.invoice')
-	InvoiceLine = self.pool.get('account.invoice.line')
-	Account = self.pool.get('account.account')
-	wf_service = netsvc.LocalService('workflow')
 
-	order = self.browse(cr, uid, ids)[0]
-
-        if context is None:
-            context = {}
-        journal_ids = self.pool.get('account.journal').search(cr, uid,
-            [('type', '=', 'sale_refund'), ('company_id', '=', order.company_id.id)],
-            limit=4)
-        if not journal_ids:
-            raise osv.except_osv(_('Error!'),
-                _('Please define sales journal for this company: "%s" (id:%d).') % (order.company_id.name, order.company_id.id))
-
-	invoice_vals = {
-	    'name': order.client_order_ref or '',
-	    'origin': order.name,
-	    'type': 'out_refund',
-	    'reference': order.client_order_ref or order.name,
-	    'account_id': order.partner_id.property_account_receivable.id,
-	    'partner_id': order.partner_invoice_id.id,
-	    'journal_id': journal_ids[1],
-	    'currency_id': order.pricelist_id.currency_id.id,
-	    'comment': order.note,
-	    'payment_term': order.payment_term and order.payment_term.id or False,
-	    'fiscal_position': order.fiscal_position.id or order.partner_id.property_account_position.id,
-	    'date_invoice': context.get('date_invoice', False),
-	    'company_id': order.company_id.id,
-	    'user_id': order.user_id and order.user_id.id or False
-	}
-
-	invoice_id = Invoice.create(cr, uid, invoice_vals)
-
-        account_id = Account.search(cr, uid, [('code','=','404002')])
-
-	line_vals = {
-	    'name': 'Borg',
-	    'invoice_id': invoice_id,
-	    'price_unit': order.deposit_amount,
-	    'product_uom_qty': 1,
-	    'account_id': account_id[0],
-	}
-	InvoiceLine.create(cr, uid, line_vals)	
-
-	order.write({'deposit_credit_note_id': invoice_id})
-
-	flag = True
-        for line in order.order_line:
-            if not line.invoiced:
-                flag = False
-                break
-        if flag:
-            order.write({'state': 'done'})
-            wf_service.trg_validate(uid, 'sale.order', order.id, 'all_lines', cr)
-
-	return True
+#    def deposit_create(self, cr, uid, ids, context=None):
+#
+#	Invoice = self.pool.get('account.invoice')
+#	InvoiceLine = self.pool.get('account.invoice.line')
+#	Account = self.pool.get('account.account')
+#	wf_service = netsvc.LocalService('workflow')
+#
+#	order = self.browse(cr, uid, ids)[0]
+#
+#        if context is None:
+#            context = {}
+#        journal_ids = self.pool.get('account.journal').search(cr, uid,
+#            [('type', '=', 'sale_refund'), ('company_id', '=', order.company_id.id)],
+#            limit=4)
+#        if not journal_ids:
+#            raise osv.except_osv(_('Error!'),
+#                _('Please define sales journal for this company: "%s" (id:%d).') % (order.company_id.name, order.company_id.id))
+#
+#	invoice_vals = {
+#	    'name': order.client_order_ref or '',
+#	    'origin': order.name,
+#	    'type': 'out_refund',
+#	    'reference': order.client_order_ref or order.name,
+#	    'account_id': order.partner_id.property_account_receivable.id,
+#	    'partner_id': order.partner_invoice_id.id,
+#	    'journal_id': journal_ids[1],
+#	    'currency_id': order.pricelist_id.currency_id.id,
+#	    'comment': order.note,
+#	    'payment_term': order.payment_term and order.payment_term.id or False,
+#	    'fiscal_position': order.fiscal_position.id or order.partner_id.property_account_position.id,
+#	    'date_invoice': context.get('date_invoice', False),
+#	    'company_id': order.company_id.id,
+#	    'user_id': order.user_id and order.user_id.id or False
+#	}
+#
+#	invoice_id = Invoice.create(cr, uid, invoice_vals)
+#
+#        account_id = Account.search(cr, uid, [('code','=','404002')])
+#
+#	line_vals = {
+#	    'name': 'Borg',
+#	    'invoice_id': invoice_id,
+#	    'price_unit': order.deposit_amount,
+#	    'product_uom_qty': 1,
+#	    'account_id': account_id[0],
+#	}
+#	InvoiceLine.create(cr, uid, line_vals)	
+#
+#	order.write({'deposit_credit_note_id': invoice_id})
+#
+#	flag = True
+#        for line in order.order_line:
+#            if not line.invoiced:
+#                flag = False
+#                break
+#        if flag:
+#            order.write({'state': 'done'})
+#            wf_service.trg_validate(uid, 'sale.order', order.id, 'all_lines', cr)
+#
+#	return True
 
 class sale_order_add_line(osv.osv_memory):
     _name = 'sale.order.add.line'
@@ -247,10 +291,18 @@ class sale_order_line(osv.osv):
     _inherit = "sale.order.line"
 
 
+    _columns = {
+         'uitvoering_jaar': fields.char('Uitvoering Jaar', size=4),
+         'facturatie_jaar': fields.char('Facturatie Jaar', size=4),
+    }
+
     def create(self, cr, uid, vals, context=None):
 
         if 'price_unit' in vals and vals['price_unit'] < 0:
 	    raise osv.except_osv(_('Minus Price'),_("Minus values are not allowed for the price"))
+
+        if 'product_uom_qty' in vals and vals['product_uom_qty'] < 0:
+	    raise osv.except_osv(_('Minus Qty'),_("Minus quantities are not allowed"))
 
         return super(sale_order_line, self).create(cr, uid, vals, context=context)
 
@@ -258,6 +310,9 @@ class sale_order_line(osv.osv):
 
         if 'price_unit' in vals and vals['price_unit'] < 0:
 	    raise osv.except_osv(_('Minus Price'),_("Minus values are not allowed for the price"))
+
+        if 'product_uom_qty' in vals and vals['product_uom_qty'] < 0:
+	    raise osv.except_osv(_('Minus Qty'),_("Minus quantities are not allowed"))
 
         return super(sale_order_line, self).write(cr, uid, ids, vals, context=context)
 
@@ -267,6 +322,21 @@ class sale_order_line(osv.osv):
         default['delivered_text'] = False
         return super(sale_order_line, self).copy(cr, uid, id, default=default, context=context)
 
+
+    def default_get(self, cr, uid, fields, context=None):
+        if context is None:
+            context = {}
+        result = super(sale_order_line, self).default_get(cr, uid, fields, context=context)
+
+       # Copy the values of the last created line
+        if 'order_id' in context and context['order_id']:
+            lines = self.pool.get('sale.order').read(cr, uid, context['order_id'], ['order_line'])['order_line']
+            if lines:
+                line = self.pool.get('sale.order.line').browse(cr, uid, max(lines))
+                result['analytic_dimension_1_id'] = line.analytic_dimension_1_id.id
+                result['analytic_dimension_2_id'] = line.analytic_dimension_2_id.id
+                result['analytic_dimension_3_id'] = line.analytic_dimension_3_id.id
+        return result
 
 class sale_order_line_make_invoice(osv.osv_memory):
 
@@ -285,6 +355,7 @@ class sale_order_line_make_invoice(osv.osv_memory):
              @return: A dictionary which of fields with values.
 
         """
+	print "################ in np sale make_invoices"
         if context is None: context = {}
         res = False
         invoices = {}
@@ -316,6 +387,23 @@ class sale_order_line_make_invoice(osv.osv_memory):
                 line_id = sales_order_line_obj.invoice_line_create(cr, uid, [line.id], context=context)
                 for lid in line_id:
                     invoices[line.order_id].append(lid)
+
+		# Copy line and change quantities
+		if line.delivered_qty < line.product_uom_qty:
+		    dif_qty = line.product_uom_qty - line.delivered_qty
+		    newline = sales_order_line_obj.copy(cr, uid, line.id, {
+			'product_uom_qty':dif_qty,
+			'delivered_qty': 0,
+			'delivered_flag': False,
+			'delivered_text': "",
+			'state': 'confirmed',
+		    })
+		    print "newline:",newline
+		    sales_order_line_obj.write(cr, uid, [line.id], {'product_uom_qty':line.delivered_qty, 'state':'done'})
+		    sales_order_line_obj.write(cr, uid, [newline], {'state':'confirmed'})
+
+        if line.delivered_qty == line.product_uom_qty:
+            sales_order_line_obj.write(cr, uid, [line.id], {'state':'done'})
         for order, il in invoices.items():
             res = make_invoice(order, il)
             cr.execute('INSERT INTO sale_order_invoice_rel \
@@ -326,7 +414,8 @@ class sale_order_line_make_invoice(osv.osv_memory):
                 if not line.invoiced:
                     flag = False
                     break
-            if flag and data_sale.deposit_credit_note_id:
+#            if flag and data_sale.deposit_credit_note_id:
+            if flag:
                 line.order_id.write({'state': 'done'})
                 wf_service.trg_validate(uid, 'sale.order', order.id, 'all_lines', cr)
 
@@ -345,6 +434,7 @@ class sale_order_line_make_invoice(osv.osv_memory):
                 'delivered_text': "",
 		'state': 'confirmed',
             })
+	    print "newline:",newline
             sales_order_line_obj.write(cr, uid, [line.id], {'product_uom_qty':line.delivered_qty, 'state':'done'})
             sales_order_line_obj.write(cr, uid, [newline], {'state':'confirmed'})
 

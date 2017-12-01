@@ -24,3 +24,8 @@ msgstr ""
 msgid "Sale to Invoice"
 msgstr "In uitvoering"
 
+#. module: sale
+#: field:sale.order.line,product_uom:0
+msgid "Unit of Measure "
+msgstr "Meeteen heid "
+
