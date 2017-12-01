@@ -243,9 +243,7 @@
             <field name="arch" type="xml">
 		<xpath expr="//filter[@string='My Sales Order Lines']" position="after">
                         <filter icon="terp-dolar-ok!" name="delivered_flag_ok" string="Not ready for invoicing" domain="[('delivered_flag','=',0)]"/>
-<!--
-                        <filter icon="terp-dolar-ok!" name="delivered_qty_dif" string="Delivered qty smaller then qty" domain="[('delivered_qty','&lt;','product_uom_qty')]"/>
--->
+                        <filter icon="terp-dolar-ok!" name="delivered_qty_dif" string="Delivered qty smaller then qty" domain="[('delivered_qty','&lt;',parent.product_uom_qty)]"/>
                 </xpath>
             </field>
         </record>

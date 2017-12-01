@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+
+        <record id="view_sales_order_line_np_filter" model="ir.ui.view">
+            <field name="name">sale.order.np.line</field>
+            <field name="model">sale.order.line</field>
+            <field name="inherit_id" ref="natuurpunt_sale.view_sales_order_line_np_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//filter[@string='Not ready for invoicing']" position="after">
+                    <filter icon="terp-dolar-ok!" name="delivered_qty_dif" string="Delivery not complete" domain="[('delivery_balance','=',False)]"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</openerp>
+

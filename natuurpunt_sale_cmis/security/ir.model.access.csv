@@ -1,5 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_sale_order_attachment_user,access.sale.order.attachment,model_sale_order_attachment,base.group_sale_salesman,1,1,0,0
+access_sale_order_attachment_user,access.sale.order.attachment,model_sale_order_attachment,base.group_sale_salesman,1,1,1,1
 access_ir_attachment_type_user,access.ir.attachment.type,model_ir_attachment_type,base.group_sale_salesman,1,0,0,0
-access_sale_order_attachment_manager,access.sale.order.attachment,model_sale_order_attachment,base.group_sale_manager,1,1,1,1
 access_ir_attachment_type_manager,access.ir.attachment.type,model_ir_attachment_type,base.group_sale_manager,1,1,1,1
