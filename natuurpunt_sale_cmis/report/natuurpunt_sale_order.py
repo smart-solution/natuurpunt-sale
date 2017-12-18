@@ -22,8 +22,9 @@
 import time
 
 from openerp.report import report_sxw
+from natuurpunt_tools import report
 
-class order(report_sxw.rml_parse):
+class order(report.natuurpunt_rml_parse):
     def __init__(self, cr, uid, name, context=None):
         super(order, self).__init__(cr, uid, name, context=context)
         self.localcontext.update({
