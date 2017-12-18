@@ -85,7 +85,6 @@ class ir_attachment(osv.osv):
         return res
 
     def copy(self, cr, uid, id, default=None, context=None):
-        import pdb; pdb.set_trace()
         if not default:
             default = {}
         return super(ir_attachment, self).copy(cr, uid, id, default, context=context)
