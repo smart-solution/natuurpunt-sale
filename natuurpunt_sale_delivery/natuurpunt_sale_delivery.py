@@ -19,10 +19,24 @@
 from osv import osv, fields
 from openerp.tools.translate import _
 from openerp import SUPERUSER_ID
+from natuurpunt_tools import sql_wrapper
 
 class sale_order_line(osv.osv):
 
     _inherit = 'sale.order.line'
+
+    def search(self, cr, user, args, offset=0, limit=None, order=None, context=None, count=False):
+        if context is None:
+            context = {}
+        salesman_ids = map(lambda a:a[2] if a else [],[a for a in args if 'salesman_id' in a])
+        if salesman_ids:
+            context['salesman_id'] = salesman_ids[0]
+        return super(sale_order_line, self).search(cr,user,args,
+                                                   offset=offset,
+                                                   limit=limit,
+                                                   order=order,
+                                                   context=context,
+                                                   count=count)
 
     def _function_delivery_balance(self, cr, uid, ids, name, arg, context=None):
         res = {}
@@ -33,11 +47,12 @@ class sale_order_line(osv.osv):
             context = {}
         if not args:
             return []
-        cr.execute('SELECT id FROM sale_order_line where product_uom_qty > delivered_qty or delivered_qty is null')
-        res = cr.fetchall()
+        sql_stat = 'SELECT id FROM sale_order_line where (product_uom_qty > delivered_qty or delivered_qty is null)' + \
+                   (' and salesman_id = {}'.format(context['salesman_id']) if context.get('salesman_id',False) else '')
+        res = sql_wrapper(sql_stat)(cr)
         if not res:
             return [('id', '=', '0')]
-        return [('id', 'in', [x[0] for x in res])]
+        return [('id', 'in', [x['id'] for x in res])]
 
     _columns = {
         'delivery_balance': fields.function(
