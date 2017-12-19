@@ -51,7 +51,7 @@ class sale_order_line(osv.osv):
                    (' and salesman_id = {}'.format(context['salesman_id']) if context.get('salesman_id',False) else '')
         res = sql_wrapper(sql_stat)(cr)
         if not res:
-            return [('id', '=', '0')]
+            return [('id', '=', False)]
         return [('id', 'in', [x['id'] for x in res])]
 
     _columns = {
