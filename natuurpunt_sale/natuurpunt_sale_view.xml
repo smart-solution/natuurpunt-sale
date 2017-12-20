@@ -139,6 +139,8 @@
 		<xpath expr="//field[@name='order_line']/tree//field[@name='price_subtotal']" position="after">
 			<field name="uitvoering_jaar"/>
 			<field name="facturatie_jaar"/>
+			<field name="state"/>
+		    	<button name='action_force_close' string='Gesloten' type='object' icon="gtk-execute"/>
 		</xpath>
 	        <xpath expr="//field[@name='order_line']" position="attributes">
            	     <attribute name="context">{'order_id':active_id}</attribute>            
@@ -198,6 +200,7 @@
                     <field name="price_subtotal" sum="Total"/>
                     <field name="state"/>
                     <field name="invoiced"/>
+		    <button name='action_force_close' string='Gesloten' type='object' icon="gtk-execute"/>
                 </tree>
             </field>
         </record>

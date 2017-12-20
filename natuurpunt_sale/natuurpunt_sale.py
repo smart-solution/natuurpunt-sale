@@ -115,11 +115,25 @@ class sale_order(osv.osv):
     def write(self, cr, uid, ids, vals, context=None):
 		
         res = super(sale_order, self).write(cr, uid, ids, vals, context=context)
-
+	print 'VALS:',vals
         if 'user_id' in vals:
             so = self.browse(cr, uid, ids)[0]
 	    line_ids = [l.id for l in so.order_line]
 	    self.pool.get('sale.order.line').write(cr, uid, line_ids, {'user_id':vals['user_id']})
+
+	if 'state' in vals:
+	    print 'STATE:',vals['state']
+            so = self.browse(cr, uid, ids)[0]
+            line_ids = [l.id for l in so.order_line]
+
+	    if vals['state'] == 'sent':
+	        self.pool.get('sale.order.line').write(cr, uid, line_ids, {'state':'sent'})
+		
+	    if vals['state'] == 'manual':
+	        self.pool.get('sale.order.line').write(cr, uid, line_ids, {'state':'manual'})
+
+	    if vals['state'] == 'closed':
+	        self.pool.get('sale.order.line').write(cr, uid, line_ids, {'state':'closed'})
 
         return res
 
@@ -294,7 +308,31 @@ class sale_order_line(osv.osv):
     _columns = {
          'uitvoering_jaar': fields.char('Uitvoering Jaar', size=4),
          'facturatie_jaar': fields.char('Facturatie Jaar', size=4),
+         'state': fields.selection([('cancel', 'Cancelled'),('draft', 'Draft'),('confirmed', 'Confirmed'),('sent','Verstuurd'),('manual', 'In uitvoering'),('closed', 'Gesloten'),('exception', 'Exception'),('done', 'Done'),('paid','Betaald')], 'Status', required=True, readonly=True,
+                help='* The \'Draft\' status is set when the related sales order in draft status. \
+                    \n* The \'Confirmed\' status is set when the related sales order is confirmed. \
+                    \n* The \'Exception\' status is set when the related sales order is set as exception. \
+                    \n* The \'Done\' status is set when the sales order line has been picked. \
+                    \n* The \'Cancelled\' status is set when a user cancel the sales order related.'),
+	 'invoice_line_id': fields.many2one('account.invoice.line', 'Invoice Line'),
+
     }
+
+    def action_force_close(self, cr, uid, ids, context=None):
+	self.write(cr, uid, ids, {'state':'closed'})
+
+	line = self.browse(cr, uid, ids)[0]
+	order = line.order_id
+
+	all_done = True
+	for l in order.order_line:
+	    if l.state != ['done','closed']:
+		all_done = False
+
+	if all_done:
+	    self.pool.get('sale.order').write(cr, uid, [order.id], {'state','=','done'})	
+
+	return True	
 
     def create(self, cr, uid, vals, context=None):
 
@@ -385,6 +423,7 @@ class sale_order_line_make_invoice(osv.osv_memory):
                 print "1"
                 context['use_delivered_qty'] = wizard.use_delivered_qty
                 line_id = sales_order_line_obj.invoice_line_create(cr, uid, [line.id], context=context)
+		sales_order_line_obj.write(cr, uid, [line.id], {'invoice_line_id':line_id[0]})
                 for lid in line_id:
                     invoices[line.order_id].append(lid)
 
@@ -410,12 +449,14 @@ class sale_order_line_make_invoice(osv.osv_memory):
                     (order_id,invoice_id) values (%s,%s)', (order.id, res))
             flag = True
             data_sale = sales_order_obj.browse(cr, uid, order.id, context=context)
+	    print "@@@@ line.invoiced",line.invoiced
             for line in data_sale.order_line:
                 if not line.invoiced:
                     flag = False
                     break
 #            if flag and data_sale.deposit_credit_note_id:
             if flag:
+		line.write({'state':'done'})
                 line.order_id.write({'state': 'done'})
                 wf_service.trg_validate(uid, 'sale.order', order.id, 'all_lines', cr)
 
@@ -441,9 +482,30 @@ class sale_order_line_make_invoice(osv.osv_memory):
         if line.delivered_qty == line.product_uom_qty:
             sales_order_line_obj.write(cr, uid, [line.id], {'state':'done'})
 
+	print "@@@@|| line.invoiced",line.invoiced
+        if line.invoiced:
+            print "IN INVOICED"
+            sales_order_line_obj.write(cr, uid, [line.id], {'state':'done'})
+
+
         return {'type': 'ir.actions.act_window_close'}
 
+class account_invoice(osv.osv):
 
+	_inherit = 'account.invoice'
+
+	def write(self, cr, uid, ids, vals, context=None):
+
+	    if 'state' in vals and vals['state'] == 'paid':
+		invoice = self.browse(cr, uid, ids)[0]
+		
+		for line in invoice.invoice_line:
+		    so_line_id = self.pool.get('sale.order.line').search(cr, uid, [('invoice_line_id','=',line.id)])
+		    print "so_line_id:",so_line_id
+		    if so_line_id:
+		        self.pool.get('sale.order.line').write(cr, uid, so_line_id, {'state':'paid'})
+
+	    super(account_invoice, self).write(cr, uid, ids, vals, context=context)
 
 
 
