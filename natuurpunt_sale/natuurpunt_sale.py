@@ -491,22 +491,18 @@ class sale_order_line_make_invoice(osv.osv_memory):
         return {'type': 'ir.actions.act_window_close'}
 
 class account_invoice(osv.osv):
+    _inherit = 'account.invoice'
 
-	_inherit = 'account.invoice'
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'state' in vals and vals['state'] == 'paid':
+            invoice = self.browse(cr, uid, ids)[0]
 
-	def write(self, cr, uid, ids, vals, context=None):
+            for line in invoice.invoice_line:
+                so_line_id = self.pool.get('sale.order.line').search(cr, uid, [('invoice_line_id','=',line.id)])
+                print "so_line_id:",so_line_id
+                if so_line_id:
+                    self.pool.get('sale.order.line').write(cr, uid, so_line_id, {'state':'paid'})
 
-	    if 'state' in vals and vals['state'] == 'paid':
-		invoice = self.browse(cr, uid, ids)[0]
-		
-		for line in invoice.invoice_line:
-		    so_line_id = self.pool.get('sale.order.line').search(cr, uid, [('invoice_line_id','=',line.id)])
-		    print "so_line_id:",so_line_id
-		    if so_line_id:
-		        self.pool.get('sale.order.line').write(cr, uid, so_line_id, {'state':'paid'})
-
-	    super(account_invoice, self).write(cr, uid, ids, vals, context=context)
-
-
+        return super(account_invoice, self).write(cr, uid, ids, vals, context=context)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
