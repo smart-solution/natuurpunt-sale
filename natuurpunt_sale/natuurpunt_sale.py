@@ -358,6 +358,7 @@ class sale_order_line(osv.osv):
         default['delivered_flag'] = False
         default['delivered_qty'] = False
         default['delivered_text'] = False
+	default['invoice_line_id'] = False
         return super(sale_order_line, self).copy(cr, uid, id, default=default, context=context)
 
 
