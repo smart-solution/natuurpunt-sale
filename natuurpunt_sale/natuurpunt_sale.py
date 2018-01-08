@@ -29,6 +29,7 @@ class sale_order(osv.osv):
 
     _columns = {
         'cancel_reason_id': fields.many2one('sale.order.cancel.reason', 'Reden annulatie'),
+        'cancel_reason': fields.text('Cancel Reason'),
         'has_deposit': fields.boolean('Borg'),
         'deposit_amount': fields.float('Borg bedrag'),
         'deposit_credit_note_id': fields.many2one('account.invoice', 'Borg Credit Nota'),
@@ -211,10 +212,11 @@ class sale_invoice(osv.osv):
         return True
 
     def action_done(self, cr, uid, ids, context=None):
+        so_line_obj = self.pool.get('sale.order.line')
         sale_invoice = self.browse(cr,uid,ids,context=context)
         order_id = sale_invoice[0].order_id.id
         # inform sale_order that invoicing is complete
-        if not self.search(cr,uid,[('order_id','=',order_id),('state','=','open')]):
+        if not so_line_obj.search(cr,uid,[('order_id','=',order_id),('state','!=','paid')]):
             wf_service = netsvc.LocalService('workflow')
             wf_service.trg_validate(uid, 'sale.order', order_id, 'all_lines', cr)
         return True

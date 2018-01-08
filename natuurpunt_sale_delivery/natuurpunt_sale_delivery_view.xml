@@ -7,10 +7,22 @@
             <field name="model">sale.order.line</field>
             <field name="inherit_id" ref="natuurpunt_sale.view_sales_order_line_np_filter"/>
             <field name="arch" type="xml">
-                <xpath expr="//filter[@string='Not ready for invoicing']" position="after">
+                <xpath expr="//filter[@string='To Invoice']" position="replace">
                     <filter icon="terp-dolar-ok!" name="delivered_qty_dif" string="Delivery not complete" domain="[('delivery_balance','=',False)]"/>
                 </xpath>
             </field>
+        </record>
+
+        <record id="action_sale_order_line_np" model="ir.actions.act_window">
+               <field name="name">Verkooplijnen</field>
+               <field name="type">ir.actions.act_window</field>
+               <field name="res_model">sale.order.line</field>
+               <field name="view_type">form</field>
+               <field name="view_mode">tree</field>
+               <field name="context">{"search_default_delivered_qty_dif":1}</field>
+               <field name="view_id" ref="natuurpunt_sale.view_sale_order_line_np_tree"/>
+               <field name="domain">[('state','not in',('draft','cancel'))]</field>
+               <field name="filter" eval="True"/>
         </record>
 
     </data>
