@@ -62,8 +62,7 @@ class sale_order(osv.osv):
         return True
 
     def action_invoice_end(self, cr, uid, ids, context=None):
-        for order_id in ids:
-            self.write(cr, uid, [order_id], {'state':'paid'}, context=context)
+        self.write(cr, uid, ids, {'state':'paid'}, context=context)
         return super(sale_order, self).action_invoice_end(cr, uid, ids, context=context)
 
     def in_progress(self, cr, uid, ids, context=None):
@@ -182,6 +181,43 @@ class sale_order_cancel_reason(osv.osv):
          'name': fields.char('Reden', size=128, required=True),
     }
 
+class sale_invoice(osv.osv):
+    _name = 'sale.invoice'
+
+    _columns = {
+        'order_id': fields.many2one('sale.order', 'sale order', select=True),
+        'invoice_id': fields.many2one('account.invoice', 'sale invoice', select=True),
+        'state':  fields.selection([
+           ('open', 'Open'),
+           ('done', 'Done'),
+        ], 'Status'),
+    }
+
+    _defaults = {
+        'state': 'open',
+    }
+
+    def action_sale_invoiced(self, cr, uid, ids, context=None):
+        sale_invoice = self.browse(cr,uid,ids,context=context)
+        return sale_invoice[0].invoice_id.id
+
+    def action_invoice_end(self, cr, uid, ids, context=None):
+        so_line_obj = self.pool.get('sale.order.line')
+        sale_invoice = self.browse(cr,uid,ids,context=context)
+        for line in sale_invoice[0].invoice_id.invoice_line:
+            so_line_id = so_line_obj.search(cr, uid, [('invoice_line_id','=',line.id)])
+            so_line_obj.write(cr, uid, so_line_id, {'state':'paid'})
+        self.write(cr,uid,ids,{'state':'done'})
+        return True
+
+    def action_done(self, cr, uid, ids, context=None):
+        sale_invoice = self.browse(cr,uid,ids,context=context)
+        order_id = sale_invoice[0].order_id.id
+        # inform sale_order that invoicing is complete
+        if not self.search(cr,uid,[('order_id','=',order_id),('state','=','open')]):
+            wf_service = netsvc.LocalService('workflow')
+            wf_service.trg_validate(uid, 'sale.order', order_id, 'all_lines', cr)
+        return True
 
 class sale_order_line(osv.osv):
     _inherit = "sale.order.line"
@@ -268,108 +304,48 @@ class sale_order_line_make_invoice(osv.osv_memory):
              @return: A dictionary which of fields with values.
 
         """
-        if context is None: context = {}
-        res = False
+        context = context or {}
         invoices = {}
+        sales_order_line_obj = self.pool.get('sale.order.line')
+        wf_service = netsvc.LocalService('workflow')
 
-        def make_invoice(order, lines):
-            """
-                 To make invoices.
+        for line in sales_order_line_obj.browse(cr, uid, context.get('active_ids', []), context=context):
+            order = line.order_id
+            if line.invoiced:
+                warn = _('Invoice cannot be created for Sales Order {}. The Sales Order Line is Invoiced!').format(order.name)
+                raise osv.except_osv(_('Warning!'), warn)
+            dif_qty = line.product_uom_qty - line.delivered_qty
+            sales_order_line_obj.write(cr, uid, [line.id], {'product_uom_qty':line.delivered_qty, 'state':'done'})
+            if not order in invoices:
+                invoices[order] = []
+            inv_line_id = sales_order_line_obj.invoice_line_create(cr, uid, [line.id], context=context)
+            sales_order_line_obj.write(cr, uid, [line.id], {'invoice_line_id':inv_line_id[0]})
+            invoices[order].append(inv_line_id[0])
 
-                 @param order:
-                 @param lines:
+            if dif_qty:
+                newline = sales_order_line_obj.copy(cr, uid, line.id, {
+                   'product_uom_qty':dif_qty,
+                   'delivered_qty': 0,
+                   'delivered_flag': False,
+                   'delivered_text': '',
+                })
+                sales_order_line_obj.write(cr, uid, [newline], {'state':'confirmed'})
 
-                 @return:
-
-            """
+        for order, lines in invoices.items():
             inv = self._prepare_invoice(cr, uid, order, lines)
             inv_id = self.pool.get('account.invoice').create(cr, uid, inv)
-            return inv_id
-
-        sales_order_line_obj = self.pool.get('sale.order.line')
-        sales_order_obj = self.pool.get('sale.order')
-        wf_service = netsvc.LocalService('workflow')
-        wizard = self.browse(cr, uid ,ids)[0]
-        for line in sales_order_line_obj.browse(cr, uid, context.get('active_ids', []), context=context):
-            if (not line.invoiced) and (line.state not in ('draft', 'cancel')):
-                if not line.order_id in invoices:
-                    invoices[line.order_id] = []
-                context['use_delivered_qty'] = wizard.use_delivered_qty
-                line_id = sales_order_line_obj.invoice_line_create(cr, uid, [line.id], context=context)
-                sales_order_line_obj.write(cr, uid, [line.id], {'invoice_line_id':line_id[0]})
-                for lid in line_id:
-                    invoices[line.order_id].append(lid)
-
-                # Copy line and change quantities
-                if line.delivered_qty < line.product_uom_qty:
-                    dif_qty = line.product_uom_qty - line.delivered_qty
-                    newline = sales_order_line_obj.copy(cr, uid, line.id, {
-                        'product_uom_qty':dif_qty,
-                        'delivered_qty': 0,
-                        'delivered_flag': False,
-                        'delivered_text': '',
-                        'state': 'confirmed',
-                    })
-                    sales_order_line_obj.write(cr, uid, [line.id], {'product_uom_qty':line.delivered_qty, 'state':'done'})
-                    sales_order_line_obj.write(cr, uid, [newline], {'state':'confirmed'})
-
-        if line.delivered_qty == line.product_uom_qty:
-            sales_order_line_obj.write(cr, uid, [line.id], {'state':'done'})
-        for order, il in invoices.items():
-            res = make_invoice(order, il)
             cr.execute('INSERT INTO sale_order_invoice_rel \
-                    (order_id,invoice_id) values (%s,%s)', (order.id, res))
-            flag = True
-            data_sale = sales_order_obj.browse(cr, uid, order.id, context=context)
-            for line in data_sale.order_line:
-                if not line.invoiced:
-                    flag = False
-                    break
-            #if flag and data_sale.deposit_credit_note_id:
-            if flag:
-                # forces the use of the paid subflow and trigger the action_invoice_end
-                wf_service.trg_validate(uid, 'sale.order', order.id, 'manual_invoice', cr)
-                line.write({'state':'done'})
-                line.order_id.write({'state': 'done'})
+                    (order_id,invoice_id) values (%s,%s)', (order.id, inv_id))
+            sale_invoice_vals = {
+                'order_id': order.id,
+                'invoice_id': inv_id,
+            }
+            sale_invoice_id = self.pool.get('sale.invoice').create(cr,uid,sale_invoice_vals)
+            wf_service.trg_validate(uid, 'sale.invoice', sale_invoice_id, 'sale_invoiced', cr)
 
-        if not invoices:
-            raise osv.except_osv(_('Warning!'), _('Invoice cannot be created for this Sales Order Line due to one of the following reasons:\n1.The state of this sales order line is either "draft" or "cancel"!\n2.The Sales Order Line is Invoiced!'))
         if context.get('open_invoices', False):
-            return self.open_invoices(cr, uid, ids, res, context=context)
-
-        # Copy line and change quantities
-        if line.delivered_qty < line.product_uom_qty:
-            dif_qty = line.product_uom_qty - line.delivered_qty
-            newline = sales_order_line_obj.copy(cr, uid, line.id, {
-                'product_uom_qty':dif_qty,
-                'delivered_qty': 0,
-                'delivered_flag': False,
-                'delivered_text': "",
-                'state': 'confirmed',
-            })
-            sales_order_line_obj.write(cr, uid, [line.id], {'product_uom_qty':line.delivered_qty, 'state':'done'})
-            sales_order_line_obj.write(cr, uid, [newline], {'state':'confirmed'})
-
-        if line.delivered_qty == line.product_uom_qty:
-            sales_order_line_obj.write(cr, uid, [line.id], {'state':'done'})
-
-        if line.invoiced:
-            sales_order_line_obj.write(cr, uid, [line.id], {'state':'done'})
-
-        return {'type': 'ir.actions.act_window_close'}
-
-class account_invoice(osv.osv):
-    _inherit = 'account.invoice'
-
-    def write(self, cr, uid, ids, vals, context=None):
-        if 'state' in vals and vals['state'] == 'paid':
-            invoice = self.browse(cr, uid, ids)[0]
-
-            for line in invoice.invoice_line:
-                so_line_id = self.pool.get('sale.order.line').search(cr, uid, [('invoice_line_id','=',line.id)])
-                if so_line_id:
-                    self.pool.get('sale.order.line').write(cr, uid, so_line_id, {'state':'paid'})
-
-        return super(account_invoice, self).write(cr, uid, ids, vals, context=context)
+            return self.open_invoices(cr, uid, ids, inv_id, context=context)
+        else:
+            return {'type': 'ir.actions.act_window_close'}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -30,8 +30,9 @@
     'website': 'http://www.smartsolution.be',
     'depends': ['multi_analytical_account'],
     'data': [
-	'natuurpunt_sale_view.xml',
-	'security/ir.model.access.csv'
+        'natuurpunt_sale_view.xml',
+        'natuurpunt_sale_workflow.xml',
+        'security/ir.model.access.csv'
     ],
    'installable': True,
     'application': True,
