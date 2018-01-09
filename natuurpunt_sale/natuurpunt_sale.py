@@ -86,10 +86,14 @@ class sale_order(osv.osv):
                 self.pool.get('sale.order.line').write(cr, uid, line_ids, {'state':'sent'})
 
             if vals['state'] == 'manual':
-                self.pool.get('sale.order.line').write(cr, uid, line_ids, {'state':'manual'})
+                for line in self.pool.get('sale.order.line').browse(cr, uid, line_ids):
+                    if line.state in ['confirmed']:
+                        self.pool.get('sale.order.line').write(cr, uid, line.id, {'state':'manual'})
 
             if vals['state'] == 'closed':
-                self.pool.get('sale.order.line').write(cr, uid, line_ids, {'state':'closed'})
+                for line in self.pool.get('sale.order.line').browse(cr, uid, line_ids):
+                    if line.state in ['confirmed','manual']:
+                        self.pool.get('sale.order.line').write(cr, uid, line.id, {'state':'closed'})
 
         return res
 
@@ -231,6 +235,7 @@ class sale_order_line(osv.osv):
                 help='* The \'Draft\' status is set when the related sales order in draft status. \
                     \n* The \'Confirmed\' status is set when the related sales order is confirmed. \
                     \n* The \'Exception\' status is set when the related sales order is set as exception. \
+                    \n* The \'Closed\' status is set when the users marks a order line as closed. \
                     \n* The \'Done\' status is set when the sales order line has been picked. \
                     \n* The \'Cancelled\' status is set when a user cancel the sales order related.'),
          'invoice_line_id': fields.many2one('account.invoice.line', 'Invoice Line'),
@@ -314,7 +319,10 @@ class sale_order_line_make_invoice(osv.osv_memory):
         for line in sales_order_line_obj.browse(cr, uid, context.get('active_ids', []), context=context):
             order = line.order_id
             if line.invoiced:
-                warn = _('Invoice cannot be created for Sales Order {}. The Sales Order Line is Invoiced!').format(order.name)
+                warn = _('Invoice cannot be created for Sales Order {}. A Sales Order Line is already invoiced!').format(order.name)
+                raise osv.except_osv(_('Warning!'), warn)
+            if line.delivered_qty == 0 or line.delivered_flag == False:
+                warn = _('Invoice cannot be created for Sales Order {}. A Sales Order Line is not ready for invoice!').format(order.name)
                 raise osv.except_osv(_('Warning!'), warn)
             dif_qty = line.product_uom_qty - line.delivered_qty
             sales_order_line_obj.write(cr, uid, [line.id], {'product_uom_qty':line.delivered_qty, 'state':'done'})

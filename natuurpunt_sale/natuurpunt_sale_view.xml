@@ -122,10 +122,10 @@
 			<attribute name="states">sent</attribute>
                 </xpath>
 		<xpath expr="//button[@name='action_cancel']" position="after">
-			<button name='action_force_close' string='Gesloten' type='object' states="progress,manual,done"/>
+			<button name='action_force_close' string='Gesloten' type='object' states="manual,confirmed"/>
                 </xpath>
 		<xpath expr="//button[@name='action_cancel']" position="after">
-                    <button name="%(action_sale_order_add_line)d" string="Add Order Line" type="action" icon="gtk-execute" states="progress,manual"/>
+                    <button name="%(action_sale_order_add_line)d" string="Add Order Line" type="action" icon="gtk-execute" states="manual,confirmed"/>
                 </xpath>
 		<field name="fiscal_position" position="attributes">
                         <attribute name="invisible">1</attribute>
@@ -140,7 +140,7 @@
 			<field name="uitvoering_jaar"/>
 			<field name="facturatie_jaar"/>
 			<field name="state"/>
-		    	<button name='action_force_close' string='Gesloten' type='object' icon="gtk-cancel"/>
+		    	<button name='action_force_close' string='Gesloten' type='object' icon="gtk-cancel" states="manual,confirmed"/>
 		</xpath>
 	        <xpath expr="//field[@name='order_line']" position="attributes">
            	     <attribute name="context">{'order_id':active_id}</attribute>            
@@ -197,11 +197,11 @@
                     <field name="salesman_id"/>
                     <field name="delivered_qty"/>
                     <field name="delivered_flag"/>
-                    <button name="%(multi_analytical_account.action_sale_order_line_delivery)d" string="Delivery Status" type="action" icon="gtk-execute"/>
+                    <button name="%(multi_analytical_account.action_sale_order_line_delivery)d" string="Delivery Status" type="action" icon="gtk-execute" states="manual,confirmed"/>
                     <field name="price_subtotal" sum="Total"/>
                     <field name="state"/>
                     <field name="invoiced"/>
-		    <button name='action_force_close' string='Gesloten' type='object' icon="gtk-cancel"/>
+		    <button name='action_force_close' string='Gesloten' type='object' icon="gtk-cancel" states="manual,confirmed"/>
                 </tree>
             </field>
         </record>
@@ -213,10 +213,23 @@
                <field name="view_type">form</field>
                <field name="view_mode">tree</field>
                <field name="view_id" ref="view_sale_order_line_np_tree"/>
-               <field name="domain">[('state','not in',('draft','cancel'))]</field>
+               <field name="domain">[('state','not in',('draft','cancel','closed'))]</field>
         </record>
 
 	<menuitem id="menu_sales_order_lines" parent="base.menu_sales" action="action_sale_order_line_np" sequence="120" groups="base.group_sale_salesman_all_leads"/>
+
+        <record id="action_my_sale_order_line_np" model="ir.actions.act_window">
+               <field name="name">Mijn Verkooplijnen</field>
+               <field name="type">ir.actions.act_window</field>
+               <field name="res_model">sale.order.line</field>
+               <field name="view_type">form</field>
+               <field name="view_mode">tree</field>
+               <field name="view_id" ref="view_sale_order_line_np_tree"/>
+               <field name="domain">[('state','not in',('draft','cancel','closed')),('salesman_id','=',uid)]</field>
+        </record>
+
+	<menuitem id="menu_my_sales_order_lines" parent="base.menu_sales" action="action_my_sale_order_line_np" sequence="120" groups="base.group_sale_salesman"/>
+
 	<menuitem id="sale.menu_invoicing_sales_order_lines" parent="account.menu_finance_receivables" action="sale.action_order_line_tree2" sequence="120" groups="sale.group_invoice_so_lines"/>
 
         <record id="view_sale_order_cancel_reason_tree" model="ir.ui.view">
