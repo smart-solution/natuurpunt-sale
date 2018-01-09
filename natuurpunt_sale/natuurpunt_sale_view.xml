@@ -228,7 +228,7 @@
                <field name="domain">[('state','not in',('draft','cancel','closed')),('salesman_id','=',uid)]</field>
         </record>
 
-	<menuitem id="menu_my_sales_order_lines" parent="base.menu_sales" action="action_my_sale_order_line_np" sequence="120" groups="base.group_sale_salesman"/>
+	<menuitem id="menu_my_sales_order_lines" parent="base.menu_sales" action="action_my_sale_order_line_np" sequence="125" />
 
 	<menuitem id="sale.menu_invoicing_sales_order_lines" parent="account.menu_finance_receivables" action="sale.action_order_line_tree2" sequence="120" groups="sale.group_invoice_so_lines"/>
 
