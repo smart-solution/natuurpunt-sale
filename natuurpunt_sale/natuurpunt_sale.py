@@ -90,7 +90,7 @@ class sale_order(osv.osv):
                     if line.state in ['confirmed','manual']:
                         self.pool.get('sale.order.line').write(cr, uid, line.id, {'state':line_state})
                     if line.state == 'paid' and vals['state'] == 'closed':
-                        vals['state'] == 'paid'
+                        vals['state'] = 'paid'
 
         return super(sale_order, self).write(cr, uid, ids, vals, context=context)
 
