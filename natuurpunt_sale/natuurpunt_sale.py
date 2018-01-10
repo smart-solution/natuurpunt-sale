@@ -72,7 +72,6 @@ class sale_order(osv.osv):
         return True
 
     def write(self, cr, uid, ids, vals, context=None):
-        res = super(sale_order, self).write(cr, uid, ids, vals, context=context)
         if 'user_id' in vals:
             so = self.browse(cr, uid, ids)[0]
             line_ids = [l.id for l in so.order_line]
@@ -85,17 +84,15 @@ class sale_order(osv.osv):
             if vals['state'] == 'sent':
                 self.pool.get('sale.order.line').write(cr, uid, line_ids, {'state':'sent'})
 
-            if vals['state'] == 'manual':
-                for line in self.pool.get('sale.order.line').browse(cr, uid, line_ids):
-                    if line.state in ['confirmed']:
-                        self.pool.get('sale.order.line').write(cr, uid, line.id, {'state':'manual'})
-
-            if vals['state'] == 'closed':
+            if vals['state'] == 'manual' or vals['state'] == 'closed':
+                line_state = vals['state']
                 for line in self.pool.get('sale.order.line').browse(cr, uid, line_ids):
                     if line.state in ['confirmed','manual']:
-                        self.pool.get('sale.order.line').write(cr, uid, line.id, {'state':'closed'})
+                        self.pool.get('sale.order.line').write(cr, uid, line.id, {'state':line_state})
+                    if line.state == 'paid' and vals['state'] == 'closed':
+                        vals['state'] == 'paid'
 
-        return res
+        return super(sale_order, self).write(cr, uid, ids, vals, context=context)
 
     def copy(self, cr, uid, id, default=None, context=None):
         res = super(sale_order, self).copy(cr, uid, id, default=default, context=context)
