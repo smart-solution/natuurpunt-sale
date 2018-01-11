@@ -196,7 +196,7 @@
                     <field name="product_uom" string="Unit of Measure" groups="product.group_uom"/>
                     <field name="salesman_id"/>
                     <field name="delivered_qty"/>
-                    <field name="delivered_flag"/>
+					<field name="delivered_flag" attrs="{'invisible':[('delivered_qty','=',0)]}"/>
                     <button name="%(multi_analytical_account.action_sale_order_line_delivery)d" string="Delivery Status" type="action" icon="gtk-execute" states="manual,confirmed"/>
                     <field name="price_subtotal" sum="Total"/>
                     <field name="state"/>
