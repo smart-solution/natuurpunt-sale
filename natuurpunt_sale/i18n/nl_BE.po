@@ -27,5 +27,56 @@ msgstr "In uitvoering"
 #. module: sale
 #: field:sale.order.line,product_uom:0
 msgid "Unit of Measure "
-msgstr "Mee teenheid "
+msgstr "Meet eenheid "
+
+#. module: natuurpunt_sale
+#: view:sale.order.line:0
+msgid "Delivery Status"
+msgstr "Opleverstatus"
+
+#. module: natuurpunt_sale
+#: field:sale.order.line,invoice_line_id:0
+msgid "Invoice Line"
+msgstr "Factuurlijn"
+
+#. module: natuurpunt_sale
+#: code:addons/natuurpunt_sale/natuurpunt_sale.py:59
+#, python-format
+msgid "You cannot confirm a sales order which has no line."
+msgstr "Verkooporder zonder lijnen kan niet bevestigd worden."
+
+#. module: natuurpunt_sale
+#: view:sale.order.line:0
+msgid "Not ready for invoicing"
+msgstr "Facturatie niet aangevraagd"
+
+#. module: natuurpunt_sale
+#: code:addons/natuurpunt_sale/natuurpunt_sale.py:322
+#, python-format
+msgid "Invoice cannot be created for Sales Order {}. A Sales Order Line is not ready for invoice!"
+msgstr "verkooporder {} bevat een niet te factureren lijn."
+
+#. module: natuurpunt_sale
+#: view:sale.order.line:0
+msgid "Ready for invoicing"
+msgstr "Facturatie aangevraagd"
+
+#. module: natuurpunt_sale
+#: code:addons/natuurpunt_sale/natuurpunt_sale.py:320
+#: code:addons/natuurpunt_sale/natuurpunt_sale.py:323
+#, python-format
+msgid "Warning!"
+msgstr ""
+
+#. module: natuurpunt_sale
+#: code:addons/natuurpunt_sale/natuurpunt_sale.py:59
+#, python-format
+msgid "Error!"
+msgstr "Fout!"
+
+#. module: natuurpunt_sale
+#: code:addons/natuurpunt_sale/natuurpunt_sale.py:319
+#, python-format
+msgid "Invoice cannot be created for Sales Order {}. A Sales Order Line is already invoiced!"
+msgstr "verkooporder {} bevat reeds een gefactureerd lijn."
 
