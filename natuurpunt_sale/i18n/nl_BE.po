@@ -30,6 +30,11 @@ msgid "Unit of Measure "
 msgstr "Meet eenheid "
 
 #. module: natuurpunt_sale
+#: field:sale.order.line,delivered_qty_uom:0
+msgid "Oplever hoeveelheden "
+msgstr "Oplever hoeveelheden "
+
+#. module: natuurpunt_sale
 #: view:sale.order.line:0
 msgid "Delivery Status"
 msgstr "Opleverstatus"
