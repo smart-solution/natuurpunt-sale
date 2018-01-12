@@ -45,7 +45,7 @@ class sale_order(osv.osv):
             ('closed', 'Gesloten'),
             ('paid', 'Betaald'),
             ], 'Status', readonly=True, track_visibility='onchange',
-            help="Gives the status of the quotation or sales order. \nThe exception status is automatically set when a cancel operation occurs in the processing of a document linked to the sales order. \nThe 'Waiting Schedule' status is set when the invoice is confirmed but waiting for the scheduler to run on the order date.", select=True),
+            help="", select=True),
     }
 
     def action_force_close(self, cr, uid, ids, context=None):
