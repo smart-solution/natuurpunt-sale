@@ -229,15 +229,8 @@ class sale_order_line(osv.osv):
     _columns = {
          'uitvoering_jaar': fields.char('Uitvoering Jaar', size=4),
          'facturatie_jaar': fields.char('Facturatie Jaar', size=4),
-         'state': fields.selection([('cancel', 'Cancelled'),('draft', 'Draft'),('confirmed', 'Confirmed'),('sent','Verstuurd'),('manual', 'In uitvoering'),('closed', 'Gesloten'),('exception', 'Exception'),('done', 'Done'),('paid','Betaald')], 'Status', required=True, readonly=True,
-                help='* The \'Draft\' status is set when the related sales order in draft status. \
-                    \n* The \'Confirmed\' status is set when the related sales order is confirmed. \
-                    \n* The \'Exception\' status is set when the related sales order is set as exception. \
-                    \n* The \'Closed\' status is set when the users marks a order line as closed. \
-                    \n* The \'Done\' status is set when the sales order line has been picked. \
-                    \n* The \'Cancelled\' status is set when a user cancel the sales order related.'),
+         'state': fields.selection([('cancel', 'Cancelled'),('draft', 'Draft'),('confirmed', 'Confirmed'),('sent','Verstuurd'),('manual', 'In uitvoering'),('closed', 'Gesloten'),('exception', 'Exception'),('done', 'Done'),('paid','Betaald')], 'Status', required=True, readonly=True,help=''),
          'invoice_line_id': fields.many2one('account.invoice.line', 'Invoice Line'),
-
     }
 
     def action_force_close(self, cr, uid, ids, context=None):
