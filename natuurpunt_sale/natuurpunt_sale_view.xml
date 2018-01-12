@@ -125,7 +125,7 @@
 			<button name='action_force_close' string='Gesloten' type='object' states="manual,confirmed"/>
                 </xpath>
 		<xpath expr="//button[@name='action_cancel']" position="after">
-                    <button name="%(action_sale_order_add_line)d" string="Add Order Line" type="action" icon="gtk-execute" states="manual,confirmed"/>
+                    <button name="%(action_sale_order_add_line)d" string="Add Order Line" type="action" icon="gtk-execute" states="draft,progress,confirmed,manual"/>
                 </xpath>
 		<field name="fiscal_position" position="attributes">
                         <attribute name="invisible">1</attribute>

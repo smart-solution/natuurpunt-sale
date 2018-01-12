@@ -160,6 +160,7 @@ class sale_order_add_line(osv.osv_memory):
         """
         wiz = self.browse(cr, uid, ids[0])
         tax_ids = [t.id for t in wiz.tax_id]
+        sale_order = self.pool.get('sale.order').browse(cr, uid, wiz.order_id.id)
         line_vals = {
             'name': wiz.name,
             'product_id': wiz.product_id.id,
@@ -171,7 +172,7 @@ class sale_order_add_line(osv.osv_memory):
             'tax_id': [(6,0,tax_ids)],
             'price_unit': wiz.price_unit,
             'order_id': wiz.order_id.id,
-            'state': 'confirmed',
+            'state': sale_order.state,
         }
         self.pool.get('sale.order.line').create(cr, uid, line_vals)
         return True
@@ -217,7 +218,7 @@ class sale_invoice(osv.osv):
         sale_invoice = self.browse(cr,uid,ids,context=context)
         order_id = sale_invoice[0].order_id.id
         # inform sale_order that invoicing is complete
-        if not so_line_obj.search(cr,uid,[('order_id','=',order_id),('state','!=','paid')]):
+        if not so_line_obj.search(cr,uid,[('order_id','=',order_id),('state','not in',['paid','closed'])]):
             wf_service = netsvc.LocalService('workflow')
             wf_service.trg_validate(uid, 'sale.order', order_id, 'all_lines', cr)
         return True
@@ -347,6 +348,8 @@ class sale_order_line_make_invoice(osv.osv_memory):
                 'order_id': order.id,
                 'invoice_id': inv_id,
             }
+            if not sales_order_line_obj.search(cr,uid,[('order_id','=',order.id),('state','!=','done')]):
+                order.write({'state': 'done'})
             sale_invoice_id = self.pool.get('sale.invoice').create(cr,uid,sale_invoice_vals)
             wf_service.trg_validate(uid, 'sale.invoice', sale_invoice_id, 'sale_invoiced', cr)
 
