@@ -316,6 +316,7 @@ class sale_order_line_make_invoice(osv.osv_memory):
                 warn = _('Invoice cannot be created for Sales Order {}. A Sales Order Line is not ready for invoice!').format(order.name)
                 raise osv.except_osv(_('Warning!'), warn)
             dif_qty = line.product_uom_qty - line.delivered_qty
+            state = line.state
             sales_order_line_obj.write(cr, uid, [line.id], {'product_uom_qty':line.delivered_qty, 'state':'done'})
             if not order in invoices:
                 invoices[order] = []
@@ -330,7 +331,7 @@ class sale_order_line_make_invoice(osv.osv_memory):
                    'delivered_flag': False,
                    'delivered_text': '',
                 })
-                sales_order_line_obj.write(cr, uid, [newline], {'state':'confirmed'})
+                sales_order_line_obj.write(cr, uid, [newline], {'state':state})
 
         for order, lines in invoices.items():
             inv = self._prepare_invoice(cr, uid, order, lines)
