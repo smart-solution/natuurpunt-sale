@@ -118,9 +118,6 @@
 		<xpath expr="//button[@name='action_view_invoice']" position="attributes">
                         <attribute name="invisible">1</attribute>
                 </xpath>
-		<xpath expr="//button[@name='action_cancel']" position="attributes">
-			<attribute name="states">sent</attribute>
-                </xpath>
 		<xpath expr="//button[@name='action_cancel']" position="after">
 			<button name='action_force_close' string='Gesloten' type='object' states="manual,confirmed"/>
                 </xpath>
