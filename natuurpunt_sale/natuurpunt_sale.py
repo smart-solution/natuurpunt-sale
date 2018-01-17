@@ -23,6 +23,8 @@ from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
 from openerp import netsvc
+from natuurpunt_tools import compose
+from functools import partial
 
 class sale_order(osv.osv):
     _inherit = "sale.order"
@@ -205,23 +207,22 @@ class sale_invoice(osv.osv):
         return sale_invoice[0].invoice_id.id
 
     def action_invoice_end(self, cr, uid, ids, context=None):
-        so_line_obj = self.pool.get('sale.order.line')
-        sale_invoice = self.browse(cr,uid,ids,context=context)
-        for line in sale_invoice[0].invoice_id.invoice_line:
-            so_line_id = so_line_obj.search(cr, uid, [('invoice_line_id','=',line.id)])
-            so_line_obj.write(cr, uid, so_line_id, {'state':'paid'})
-        self.write(cr,uid,ids,{'state':'done'})
-        return True
+        return self.write(cr,uid,ids,{'state':'done'})
 
     def action_done(self, cr, uid, ids, context=None):
         so_line_obj = self.pool.get('sale.order.line')
         sale_invoice = self.browse(cr,uid,ids,context=context)
         order_id = sale_invoice[0].order_id.id
+        so_line_ids = []
+        for line in sale_invoice[0].invoice_id.invoice_line:
+            so_line_ids += so_line_obj.search(cr, uid, [('invoice_line_id','=',line.id)])
+        domain = [('order_id','=',order_id),('state','not in',['paid','closed']),('id','not in',so_line_ids)]
         # inform sale_order that invoicing is complete
-        if not so_line_obj.search(cr,uid,[('order_id','=',order_id),('state','not in',['paid','closed'])]):
+        if not so_line_obj.search(cr,uid,domain):
             wf_service = netsvc.LocalService('workflow')
             wf_service.trg_validate(uid, 'sale.order', order_id, 'all_lines', cr)
-        return True
+        # paid must be after the workflow because 'all_lines' will force the orderlines to done
+        return so_line_obj.write(cr, uid, so_line_ids, {'state':'paid'})
 
 class sale_order_line(osv.osv):
     _inherit = "sale.order.line"
@@ -237,14 +238,13 @@ class sale_order_line(osv.osv):
         self.write(cr, uid, ids, {'state':'closed'})
         line = self.browse(cr, uid, ids)[0]
         order = line.order_id
-        all_done = True
-        for l in order.order_line:
-            if l.state != ['done','closed']:
-                all_done = False
-
-        if all_done:
-            self.pool.get('sale.order').write(cr, uid, [order.id], {'state','=','done'})
-
+        state = compose(
+            partial(map,lambda line:(True if line.state in ['paid','closed'] else False,line.state)),
+            sorted,
+            min)(order.order_line)
+        # write of sale.order takes care of closed/paid as they are equal in weight 
+        if state[0]:
+            self.pool.get('sale.order').write(cr, uid, [order.id], {'state':state[1]})
         return True
 
     def create(self, cr, uid, vals, context=None):
@@ -316,13 +316,13 @@ class sale_order_line_make_invoice(osv.osv_memory):
                 warn = _('Invoice cannot be created for Sales Order {}. A Sales Order Line is not ready for invoice!').format(order.name)
                 raise osv.except_osv(_('Warning!'), warn)
             dif_qty = line.product_uom_qty - line.delivered_qty
-            state = line.state
+            original_line_state = line.state
             sales_order_line_obj.write(cr, uid, [line.id], {'product_uom_qty':line.delivered_qty, 'state':'done'})
             if not order in invoices:
                 invoices[order] = []
             inv_line_id = sales_order_line_obj.invoice_line_create(cr, uid, [line.id], context=context)
             sales_order_line_obj.write(cr, uid, [line.id], {'invoice_line_id':inv_line_id[0]})
-            invoices[order].append(inv_line_id[0])
+            invoices[order].append((inv_line_id[0],line.id))
 
             if dif_qty:
                 newline = sales_order_line_obj.copy(cr, uid, line.id, {
@@ -331,10 +331,12 @@ class sale_order_line_make_invoice(osv.osv_memory):
                    'delivered_flag': False,
                    'delivered_text': '',
                 })
-                sales_order_line_obj.write(cr, uid, [newline], {'state':state})
+                sales_order_line_obj.write(cr, uid, [newline], {'state':original_line_state})
 
         for order, lines in invoices.items():
-            inv = self._prepare_invoice(cr, uid, order, lines)
+            inv_lines = [i[0] for i in lines]
+            so_lines = [i[1] for i in lines]
+            inv = self._prepare_invoice(cr, uid, order, inv_lines)
             inv_id = self.pool.get('account.invoice').create(cr, uid, inv)
             cr.execute('INSERT INTO sale_order_invoice_rel \
                     (order_id,invoice_id) values (%s,%s)', (order.id, inv_id))
@@ -342,8 +344,12 @@ class sale_order_line_make_invoice(osv.osv_memory):
                 'order_id': order.id,
                 'invoice_id': inv_id,
             }
-            if not sales_order_line_obj.search(cr,uid,[('order_id','=',order.id),('state','!=','done')]):
-                order.write({'state': 'done'})
+            order_done = compose(
+                partial(map,lambda l:False if l.state in ['manual','confirmed'] and l.id not in so_lines else True),
+                sorted,
+                min)(order.order_line)
+            # sale.order is done if no lines exists before the done state ( manual, confirmed )
+            order.write({'state':'done'}) if order_done else True
             sale_invoice_id = self.pool.get('sale.invoice').create(cr,uid,sale_invoice_vals)
             wf_service.trg_validate(uid, 'sale.invoice', sale_invoice_id, 'sale_invoiced', cr)
 
