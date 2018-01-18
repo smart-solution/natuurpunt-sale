@@ -103,6 +103,15 @@ class sale_order(osv.osv):
         self.pool.get('sale.order.line').write(cr, uid, line_ids, {'delivered_flag':False,'delivered_qty':0})
         return res
 
+    def test_state(self, cr, uid, ids, mode, *args):
+        """
+        override this function from sale_stock that
+        will set all lines to done from workflow
+        our last state is paid or closed so we need to
+        handle it our self
+        """
+        return True
+
 class sale_order_add_line(osv.osv_memory):
     _name = 'sale.order.add.line'
 
@@ -245,6 +254,8 @@ class sale_order_line(osv.osv):
         # write of sale.order takes care of closed/paid as they are equal in weight 
         if state[0]:
             self.pool.get('sale.order').write(cr, uid, [order.id], {'state':state[1]})
+            # reclose last line because sale_stock logic will set line back to custom end state done
+            self.write(cr, uid, ids, {'state':'closed'})
         return True
 
     def create(self, cr, uid, vals, context=None):
