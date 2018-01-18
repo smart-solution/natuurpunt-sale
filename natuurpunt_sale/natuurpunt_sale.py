@@ -64,9 +64,8 @@ class sale_order(osv.osv):
             self.pool.get('sale.order.line').button_confirm(cr, uid, [x.id for x in o.order_line])
         return True
 
-    def action_invoice_end(self, cr, uid, ids, context=None):
-        self.write(cr, uid, ids, {'state':'paid'}, context=context)
-        return super(sale_order, self).action_invoice_end(cr, uid, ids, context=context)
+    def action_done(self, cr, uid, ids, context=None):
+        return self.write(cr, uid, ids, {'state':'paid'}, context=context)
 
     def in_progress(self, cr, uid, ids, context=None):
         for order_id in ids:
