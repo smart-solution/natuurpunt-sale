@@ -246,16 +246,13 @@ class sale_order_line(osv.osv):
         self.write(cr, uid, ids, {'state':'closed'})
         line = self.browse(cr, uid, ids)[0]
         order = line.order_id
+        states = {'done':1,'paid':2,'closed':2}
         state = compose(
-            partial(map,lambda line:(True if line.state in ['paid','closed'] else False,line.state)),
+            partial(map,lambda line:(states[line.state] if line.state in states else 0,line.state)),
             sorted,
             min)(order.order_line)
         # write of sale.order takes care of closed/paid as they are equal in weight 
-        if state[0]:
-            self.pool.get('sale.order').write(cr, uid, [order.id], {'state':state[1]})
-            # reclose last line because sale_stock logic will set line back to custom end state done
-            self.write(cr, uid, ids, {'state':'closed'})
-        return True
+        return self.pool.get('sale.order').write(cr, uid, [order.id], {'state':state[1]}) if state[0] else True
 
     def create(self, cr, uid, vals, context=None):
         if 'price_unit' in vals and vals['price_unit'] < 0:
