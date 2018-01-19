@@ -85,3 +85,28 @@ msgstr "Fout!"
 msgid "Invoice cannot be created for Sales Order {}. A Sales Order Line is already invoiced!"
 msgstr "verkooporder {} bevat reeds een gefactureerd lijn."
 
+#. module: natuurpunt_sale
+#: field:sale.order.add.line,price_unit:0
+msgid "Unit Price"
+msgstr "Eenheidsprijs"
+
+#. module: natuurpunt_sale
+#: field:sale.order.add.line,name:0
+msgid "Description"
+msgstr "Omschrijving"
+
+#. module: natuurpunt_sale
+#: field:sale.order.add.line,product_uom_qty:0
+msgid "Quantity"
+msgstr "Hoeveelheid"
+
+#. module: natuurpunt_sale
+#: field:sale.order.add.line,tax_id:0
+msgid "Taxes"
+msgstr "BTW"
+
+#. module: natuurpunt_sale
+#: field:sale.order.add.line,product_uom:0
+msgid "Unit of Measure "
+msgstr "Meeteenheid  "
+
