@@ -43,8 +43,9 @@
                         <group name="Documenten" string="Extra documenten met type">
 							<field name="attachment_ids" colspan="4" nolabel="1" options="{'always_reload': true}">
                                 <tree string="bijlage" editable="bottom" create="false" delete="false" >
-                                    <field name="name" readonly="1"/>
-									<field name="doc_type_id"/>
+                                  <field name="name" readonly="1"/>
+                                  <field name="doc_type_id"/>
+                                  <field name="url" invisible="1"/>
                                 </tree>
                             </field>
                         </group>

@@ -35,6 +35,14 @@ class sale_order_attachment(osv.osv):
         'order_id': fields.many2one('sale.order', 'Sale order', select=True),
         'doc_type_id': fields.many2one('ir.attachment.type', 'Document type', select=True),
         'name': fields.char('file name', help="sale order attachment"),
+        'attachment_id': fields.many2one('ir.attachment', 'CMIS Attachment',),
+        'url': fields.related(
+                'attachment_id',
+                'url',
+                type="char",
+                relation="ir.attachment",
+                string="URL",
+                store=False)
     }
 
 sale_order_attachment()
@@ -68,7 +76,8 @@ class ir_attachment(osv.osv):
             sale_order_att_obj = self.pool.get('sale.order.attachment')
             att_vals = {
                 'order_id': vals['res_id'],
-                'name': vals['name']
+                'name': vals['name'],
+                'attachment_id': res,
             }
             sale_order_att_obj.create(cr,uid, att_vals, context)
         return res

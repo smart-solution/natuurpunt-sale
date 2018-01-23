@@ -28,10 +28,12 @@
     - via cmis alfresco
     - via report
 """,
-    "depends" : ["natuurpunt_account","natuurpunt_purchase_mail","natuurpunt_sale"],
+    "depends" : ["web","natuurpunt_account","natuurpunt_purchase_mail","natuurpunt_sale"],
     "data": ["natuurpunt_sale_cmis_view.xml",
              "natuurpunt_sale_report.xml",
              "security/ir.model.access.csv"],
+    'js': ['static/src/js/natuurpunt_sale_cmis.js'],
+    'qweb': ['static/src/xml/natuurpunt_sale_cmis_template.xml'],
     "init_xml" : [],
     "update_xml" : [],
     "active": False,
