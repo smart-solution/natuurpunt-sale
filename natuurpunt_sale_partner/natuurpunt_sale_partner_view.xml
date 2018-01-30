@@ -2,7 +2,7 @@
 <openerp>
     <data>
 
-		<menuitem id="menu_partner_form" parent="base.menu_sales" action="sale.action_partner_form" sequence="150"/>
+		<menuitem id="menu_partner_form" parent="base.menu_sales" action="base.action_partner_form" sequence="150"/>
 
         <record id="view_order_partner_form_np" model="ir.ui.view">
             <field name='name'>view.sale.order.partner.form.np</field>
