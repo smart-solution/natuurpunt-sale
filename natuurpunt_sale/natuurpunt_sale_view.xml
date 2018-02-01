@@ -263,6 +263,10 @@
             </field>
         </record>
 
+        <record id="product.product_normal_action_sell" model="ir.actions.act_window">
+			<field name="domain">[('membership_product','=',False),('magazine_product','=',False)]</field>
+        </record>	
+
     </data>
 </openerp>
 
