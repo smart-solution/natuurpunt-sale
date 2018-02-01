@@ -293,16 +293,18 @@ class sale_order_line(osv.osv):
         return result
 
 class sale_order_line_make_invoice(osv.osv_memory):
-    _name="sale.order.line.close"
-
-    def order_line_close_state_set(self, cr, uid, context=None):
-        import pdb; pdb.set_trace()
-        sales_order_line_obj = self.pool.get('sale.order.line')
-        return self.pool.get('sale.order.line').action_force_close(self, cr, uid, context.get('active_ids', []), context=context)
-
-class sale_order_line_make_invoice(osv.osv_memory):
 
     _inherit="sale.order.line.make.invoice"
+
+    def _prepare_invoice(self, cr, uid, order, lines, context=None):
+        """
+             custom default journal_id
+        """
+        res = return super(sale_order_line_make_invoice, self)._prepare_invoice(cr, uid, order, context=context)
+        journal_ids = self.pool.get('account.journal').search(cr, uid, [('code','=','VF')])
+        if journal_ids:
+            res['journal_id'] = journal_ids
+        return res
 
     def make_invoices(self, cr, uid, ids, context=None):
         """
