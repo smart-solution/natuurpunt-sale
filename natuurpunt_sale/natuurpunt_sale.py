@@ -300,7 +300,7 @@ class sale_order_line_make_invoice(osv.osv_memory):
         """
              custom default journal_id
         """
-        res = return super(sale_order_line_make_invoice, self)._prepare_invoice(cr, uid, order, context=context)
+        res = super(sale_order_line_make_invoice, self)._prepare_invoice(cr, uid, order, context=context)
         journal_ids = self.pool.get('account.journal').search(cr, uid, [('code','=','VF')])
         if journal_ids:
             res['journal_id'] = journal_ids
