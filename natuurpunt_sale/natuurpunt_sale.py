@@ -303,7 +303,7 @@ class sale_order_line_make_invoice(osv.osv_memory):
         res = super(sale_order_line_make_invoice, self)._prepare_invoice(cr, uid, order, lines, context=context)
         journal_ids = self.pool.get('account.journal').search(cr, uid, [('code','=','VF')])
         if journal_ids:
-            res['journal_id'] = journal_ids
+            res['journal_id'] = journal_ids[0]
         return res
 
     def make_invoices(self, cr, uid, ids, context=None):
