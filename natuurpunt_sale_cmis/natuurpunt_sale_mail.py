@@ -137,7 +137,6 @@ class sale_order_mail_compose_message(osv.TransientModel):
 
                 #send mail
                 mail_mail.send(cr, uid, [msg_id], recipient_ids=recipient_ids, context=context)
-                import pdb; pdb.set_trace()
                 for recipient in self.pool.get('res.partner').browse(cr, uid, recipient_ids, context=context):
                     _logger.info('sale.order mail %s: %s', values['subject'], recipient.email)
 
