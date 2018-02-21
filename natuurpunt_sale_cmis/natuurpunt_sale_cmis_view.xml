@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="email_compose_message_wizard_np_sale_form">
+            <field name="name">mail.compose.message.np.sale.form</field>
+			<field name="model">sale.order.mail.compose.message</field>
+            <field name="arch" type="xml">
+                <form string="Compose Email" version="7.0">
+                    <group>
+                        <!-- truly invisible fields for control and options -->
+                        <field name="composition_mode" invisible="1"/>
+                        <field name="model" invisible="1"/>
+                        <field name="res_id" invisible="1"/>
+                        <field name="parent_id" invisible="1"/>
+                        <!-- visible wizard -->
+						<field name="customer_id" string="E-mail" readonly="True" context="{'force_email':True, 'show_email':True}"/>
+                        <field name="json_object" string="CC" placeholder="additional emails..." widget="natuurpunt_email" />
+						<field name="subject" placeholder="Subject..."/>
+						<label for="Attachment" class="oe_edit_only"/>
+						<div>
+							<field name="report_name" string="Attachment" readonly="True" class="oe_inline"/> (
+							<field name="report_size" nolabel="1" readonly="True" class="oe_inline"/> )
+						</div>
+						<field name="store_id" string="Attachment" placeholder="store_id..." widget="natuurpunt_attachments" />
+                    </group>
+                    <field name="body"/>
+                    <footer>
+                        <button string="Send" name="send_mail" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_order_form_np_attachment" model="ir.ui.view">
+            <field name='name'>view.sale.order.np.attachment.form</field>
+            <field name='model'>sale.order</field>
+            <field name="inherit_id" ref="natuurpunt_sale.view_order_form_np"/>
+            <field name='arch' type='xml'>
+               <page string="Other Information" position="after">
+                    <page string="Attachments">
+                        <group name="Documenten" string="Extra documenten met type">
+							<field name="attachment_ids" colspan="4" nolabel="1" options="{'always_reload': true}">
+                                <tree string="bijlage" editable="bottom" create="false" delete="false" >
+                                  <field name="name" readonly="1"/>
+                                  <field name="doc_type_id"/>
+                                  <field name="url" invisible="1"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </page>
+                </page>
+            </field>
+        </record>
+
+        <record id="action_email_compose_message_wizard_np_sale" model="ir.actions.act_window">
+            <field name="name">Compose Email</field>
+            <field name="res_model">mail.compose.message</field>
+            <field name="src_model">mail.compose.message</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="email_compose_message_wizard_np_sale_form" />
+            <field name="target">new</field>
+        </record>
+
+        <record id="view_ir_attachment_type_tree" model="ir.ui.view">
+            <field name='name'>view.ir.attachment.type.tree</field>
+            <field name='model'>ir.attachment.type</field>
+            <field name='arch' type='xml'>
+			<tree string="documenttype">
+				<field name="name"/>
+			</tree>
+		    </field>
+        </record>
+
+        <record id="view_ir_attachment_type_form" model="ir.ui.view">
+            <field name='name'>view.ir.attachment.type.form</field>
+            <field name='model'>ir.attachment.type</field>
+            <field name='arch' type='xml'>
+				<form string="Documenttype">
+					<group colspan="2" col="2">
+						<field name="name"/>
+					</group>
+				</form>
+		    </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_ir_attachment_type_form">
+            <field name="name">Document type</field>
+            <field name="res_model">ir.attachment.type</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_type">form</field>
+        </record>
+
+		<menuitem id="ir_attachment_type_menu" parent="base.menu_base_config" action="action_ir_attachment_type_form" sequence="120" groups="base.group_sale_manager"/>
+
+    </data>
+</openerp>

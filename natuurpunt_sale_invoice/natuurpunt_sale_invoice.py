@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
-#
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
 #    published by the Free Software Foundation, either version 3 of the
@@ -19,22 +16,32 @@
 #
 ##############################################################################
 
-{
-    'name': 'Natuurpunt Sale',
-    'version': '1.0',
-    'category': 'Sales',
-    'description': """
-    Manage Sales for Natuurpunt
-    """,
-    'author': 'Smart Solotution',
-    'website': 'http://www.smartsolution.be',
-    'depends': ['product','multi_analytical_account'],
-    'data': [
-        'natuurpunt_sale_view.xml',
-        'natuurpunt_sale_workflow.xml',
-        'security/ir.model.access.csv'
-    ],
-   'installable': True,
-    'application': True,
-}
+from osv import osv, fields
+
+class account_invoice(osv.osv):
+
+    _inherit = 'account.invoice'
+
+    def view_origin_so(self, cr, uid, ids, context=None):
+        view_id = self.pool.get('ir.ui.view').search(cr, uid, [('model','=','sale.order'),
+                                                            ('name','=','sale.order.form')])
+
+        sale_invoice_ids = self.pool.get('sale.invoice').search(cr,uid,[('invoice_id','in',ids)])
+        sale_invoice = self.pool.get('sale.invoice').browse(cr,uid,sale_invoice_ids)[0]
+
+# fill needed fields in context
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Brondocument',
+            'view_mode': 'form',
+            'view_type': 'form',
+            'view_id': False,  #view_id[0],
+            'res_model': 'sale.order',
+            'target': 'current',
+            'context': context,
+            'res_id': sale_invoice.order_id.id,
+            }
+
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+

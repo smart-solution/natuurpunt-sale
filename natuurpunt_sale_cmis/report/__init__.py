@@ -19,22 +19,6 @@
 #
 ##############################################################################
 
-{
-    'name': 'Natuurpunt Sale',
-    'version': '1.0',
-    'category': 'Sales',
-    'description': """
-    Manage Sales for Natuurpunt
-    """,
-    'author': 'Smart Solotution',
-    'website': 'http://www.smartsolution.be',
-    'depends': ['product','multi_analytical_account'],
-    'data': [
-        'natuurpunt_sale_view.xml',
-        'natuurpunt_sale_workflow.xml',
-        'security/ir.model.access.csv'
-    ],
-   'installable': True,
-    'application': True,
-}
+import natuurpunt_sale_order
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

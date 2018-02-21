@@ -8,24 +8,25 @@
             <field name="arch" type="xml">
                 <form string="Sale Order Add Line" version="7.0">
 		    <group colspan="4">
-		        <group colspan="4">
+		        <group colspan="4" col="4">
 			    <field name="state" invisible="1"/>
 			    <field name="order_id" invisible="1"/>
-			    <field name="product_id" on_change="onchange_product_id(product_id)"/>
-			    <field name="name"/>
+			    <field name="product_id" on_change="onchange_product_id(product_id)" colspan="2"/>
+			    <field name="name" colspan="2"/>
 			</group>
-			<group colspan="6">
-			    <field name="analytic_dimension_1_id"/>
-			    <field name="analytic_dimension_2_id"/>
-			    <field name="analytic_dimension_3_id"/>
+			<group colspan="4" col="6">
+			    <field name="analytic_dimension_1_id" context="{'sale_create_line_id':active_id,'dimension':1,'dimension2':analytic_dimension_2_id,'dimension3':analytic_dimension_3_id}" attrs="{'required':[('analytic_dimension_1_required','=',True)]}" required="True"/>
+			    <field name="analytic_dimension_2_id" context="{'sale_create_line_id':active_id,'dimension':2,'dimension1':analytic_dimension_1_id,'dimension3':analytic_dimension_3_id}" attrs="{'required':[('analytic_dimension_2_required','=',True)]}"/>
+			    <field name="analytic_dimension_3_id" context="{'sale_create_line_id':active_id,'dimension':3,'dimension1':analytic_dimension_1_id,'dimension2':analytic_dimension_2_id}" attrs="{'required':[('analytic_dimension_3_required','=',True)]}"/>
+                            <field name="analytic_dimension_1_required" context="{'sale_create_line_id':active_id}" invisible="1"/>
+                            <field name="analytic_dimension_2_required" context="{'sale_create_line_id':active_id}" invisible="1"/>
+                            <field name="analytic_dimension_3_required" context="{'sale_create_line_id':active_id}" invisible="1"/>
 			</group>
-			<group colspan="4">
+			<group colspan="4" col="8">
+			    <field name="price_unit"/>
 			    <field name="product_uom_qty" string="Qty"/>
 			    <field name="product_uom" string="Unit of Measure" groups="product.group_uom"/>
-			</group>
-		        <group colspan="4">
-			    <field name="tax_id"/>
-			    <field name="price_unit"/>
+			    <field name="tax_id" widget="many2many_tags"/>
 			</group>
                     </group>
                     <footer>
@@ -87,26 +88,62 @@
                <field name="target">new</field>
         </record>
 -->
-
+<!--
+        <record id="view_order_form1_np" model="ir.ui.view">
+            <field name='name'>view.sale.order.np1.form</field>
+            <field name='model'>sale.order</field>
+            <field name="inherit_id" ref="sale_stock.view_order_form_inherit"/>
+            <field name='arch' type='xml'>
+		<field name="picking_policiy" position="attributes">
+                        <attribute name="invisible">1</attribute>
+		</field>
+		<field name="order_policiy" position="attributes">
+                        <attribute name="invisible">1</attribute>
+		</field>
+            </field>
+        </record>
+-->
         <record id="view_order_form_np" model="ir.ui.view">
             <field name='name'>view.sale.order.np.form</field>
             <field name='model'>sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name='arch' type='xml'>
                 <button name="action_cancel" position="before">
-                    <button name="in_progress" string="In uitvoering" states="progress" type="object"/>
+                    <button name="in_progress" string="In uitvoering" states="progress" type="object" class="oe_highlight"/>
                 </button>
 		<xpath expr="//button[@string='Create Invoice']" position="attributes">
 			<attribute name="states"/>
                         <attribute name="invisible">1</attribute>
                 </xpath>
-		<xpath expr="//button[@name='action_cancel']" position="attributes">
-			<attribute name="states">progress</attribute>
+		<xpath expr="//button[@name='action_view_invoice']" position="attributes">
+                        <attribute name="invisible">1</attribute>
                 </xpath>
 		<xpath expr="//button[@name='action_cancel']" position="after">
-                    <button name="%(action_sale_order_add_line)d" string="Add Order Line" type="action" icon="gtk-execute" states="progress,manual"/>
+			<button name='action_force_close' string='Gesloten' type='object' states="manual,confirmed" confirm="Verkoopslijn sluiten?"/>
+                </xpath>
+		<xpath expr="//button[@name='action_cancel']" position="after">
+                    <button name="%(action_sale_order_add_line)d" string="Add Order Line" type="action" icon="gtk-execute" states="draft,progress,confirmed,manual"/>
                 </xpath>
 		<field name="fiscal_position" position="attributes">
+                        <attribute name="invisible">1</attribute>
+		</field>
+		<field name="origin" position="attributes">
+                        <attribute name="invisible">1</attribute>
+		</field>
+		<xpath expr="//field[@name='order_line']/tree//field[@name='product_id']" position="attributes">
+			<attribute name="required">1</attribute>
+			<attribute name="domain">[('membership_product','=',False),('magazine_product','=',False)]</attribute>
+		</xpath>
+		<xpath expr="//field[@name='order_line']/tree//field[@name='price_subtotal']" position="after">
+			<field name="uitvoering_jaar"/>
+			<field name="facturatie_jaar"/>
+			<field name="state"/>
+		    	<button name='action_force_close' string='Gesloten' type='object' icon="gtk-cancel" states="manual,confirmed" confirm="Verkoopslijn sluiten?"/>
+		</xpath>
+	        <xpath expr="//field[@name='order_line']" position="attributes">
+           	     <attribute name="context">{'order_id':active_id}</attribute>            
+        	</xpath>
+		<field name="invoiced" position="attributes">
                         <attribute name="invisible">1</attribute>
 		</field>
             </field>
@@ -119,11 +156,23 @@
             <field name='arch' type='xml'>
 		<field name="shipped" position="replace">
 			<field name="shipped" invisible="1"/>	
-			<field name="cancel_reason_id"/>
+	  		<field name="cancel_reason_id"/>
+			<field name="cancel_reason" string="Opmerking annulatie"/>
 			<field name="has_deposit"/>
 			<field name="deposit_amount"/>
+<!--
+			<field name="deposit_credit_note_id"/>
+		        <button name="deposit_create" string="Borg credit nota maken" type="object" attrs="{'invisible':[('has_deposit','!=',True)]}"/>
+-->
+			
 		</field>
 		<field name="incoterm" position="attributes">
+                        <attribute name="invisible">1</attribute>
+		</field>
+		<field name="picking_policy" position="attributes">
+                        <attribute name="invisible">1</attribute>
+		</field>
+		<field name="order_policy" position="attributes">
                         <attribute name="invisible">1</attribute>
 		</field>
             </field>
@@ -145,11 +194,12 @@
                     <field name="product_uom" string="Unit of Measure" groups="product.group_uom"/>
                     <field name="salesman_id"/>
                     <field name="delivered_qty"/>
-                    <field name="delivered_flag"/>
-                    <button name="%(multi_analytical_account.action_sale_order_line_delivery)d" string="Delivery Status" type="action" icon="gtk-execute"/>
+					<field name="delivered_flag" attrs="{'invisible':[('delivered_qty','=',0)]}"/>
+                    <button name="%(multi_analytical_account.action_sale_order_line_delivery)d" string="Delivery Status" type="action" icon="gtk-execute" states="manual,confirmed"/>
                     <field name="price_subtotal" sum="Total"/>
                     <field name="state"/>
                     <field name="invoiced"/>
+		    <button name='action_force_close' string='Gesloten' type='object' icon="gtk-cancel" states="manual,confirmed" confirm="Verkoopslijn sluiten?"/>
                 </tree>
             </field>
         </record>
@@ -161,10 +211,23 @@
                <field name="view_type">form</field>
                <field name="view_mode">tree</field>
                <field name="view_id" ref="view_sale_order_line_np_tree"/>
-               <field name="context">{}</field>
+               <field name="domain">[('state','not in',('draft','cancel','closed'))]</field>
         </record>
 
-	<menuitem id="menu_sales_order_lines" parent="base.menu_sales" action="action_sale_order_line_np" sequence="120" groups="sale.group_invoice_so_lines"/>
+	<menuitem id="menu_sales_order_lines" parent="base.menu_sales" action="action_sale_order_line_np" sequence="120" groups="base.group_sale_salesman_all_leads"/>
+
+        <record id="action_my_sale_order_line_np" model="ir.actions.act_window">
+               <field name="name">Mijn Verkooplijnen</field>
+               <field name="type">ir.actions.act_window</field>
+               <field name="res_model">sale.order.line</field>
+               <field name="view_type">form</field>
+               <field name="view_mode">tree</field>
+               <field name="view_id" ref="view_sale_order_line_np_tree"/>
+               <field name="domain">[('state','not in',('draft','cancel','closed')),('salesman_id','=',uid)]</field>
+        </record>
+
+	<menuitem id="menu_my_sales_order_lines" parent="base.menu_sales" action="action_my_sale_order_line_np" sequence="125" />
+
 	<menuitem id="sale.menu_invoicing_sales_order_lines" parent="account.menu_finance_receivables" action="sale.action_order_line_tree2" sequence="120" groups="sale.group_invoice_so_lines"/>
 
         <record id="view_sale_order_cancel_reason_tree" model="ir.ui.view">
@@ -188,7 +251,21 @@
 
 	<menuitem id="menu_sales_order_cancel_reason" parent="base.menu_base_config" action="action_sale_order_cancel_reason" sequence="120" groups="base.group_sale_manager"/>
 
+        <record id="view_sales_order_line_np_filter" model="ir.ui.view">
+            <field name="name">sale.order.np.line</field>
+            <field name="model">sale.order.line</field>
+            <field name="inherit_id" ref="sale.view_sales_order_line_filter"/>
+            <field name="arch" type="xml">
+			<xpath expr="//filter[@string='My Sales Order Lines']" position="replace">
+				<filter icon="terp-dolar-ok!" name="delivered_flag_ok" string="Not ready for invoicing" domain="[('delivered_flag','=',0)]"/>
+				<filter icon="terp-dolar-ok!" name="delivered_flag_ok" string="Ready for invoicing" domain="[('delivered_flag','=',1)]"/>
+			</xpath>
+            </field>
+        </record>
 
+        <record id="product.product_normal_action_sell" model="ir.actions.act_window">
+			<field name="domain">[('membership_product','=',False),('magazine_product','=',False)]</field>
+        </record>	
 
     </data>
 </openerp>

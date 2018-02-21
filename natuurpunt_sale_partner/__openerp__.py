@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
-#
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
 #    published by the Free Software Foundation, either version 3 of the
@@ -17,24 +14,21 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-##############################################################################
+############################################################################## 
 
 {
-    'name': 'Natuurpunt Sale',
-    'version': '1.0',
-    'category': 'Sales',
-    'description': """
-    Manage Sales for Natuurpunt
-    """,
-    'author': 'Smart Solotution',
-    'website': 'http://www.smartsolution.be',
-    'depends': ['product','multi_analytical_account'],
-    'data': [
-        'natuurpunt_sale_view.xml',
-        'natuurpunt_sale_workflow.xml',
-        'security/ir.model.access.csv'
-    ],
-   'installable': True,
-    'application': True,
+    "name" : "Natuurpunt Sale Partner",
+    "version" : "1.0",
+    "author" : "Joeri Belis",
+    "website" : "www.natuurpunt.be",
+    "category" : "sale",
+    "description": """
+    Natuurpunt Sale Partner and contact extentions
+""",
+    "depends" : ["sale","natuurpunt_account_invoice_ext",],
+    "data" : ["natuurpunt_sale_partner_view.xml",],
+    "init_xml" : [],
+    "update_xml" : [],
+    "active": False,
+    "installable": True
 }
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

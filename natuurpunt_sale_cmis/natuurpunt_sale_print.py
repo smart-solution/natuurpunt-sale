@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 ##############################################################################
-#
-#    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -19,22 +16,25 @@
 #
 ##############################################################################
 
-{
-    'name': 'Natuurpunt Sale',
-    'version': '1.0',
-    'category': 'Sales',
-    'description': """
-    Manage Sales for Natuurpunt
-    """,
-    'author': 'Smart Solotution',
-    'website': 'http://www.smartsolution.be',
-    'depends': ['product','multi_analytical_account'],
-    'data': [
-        'natuurpunt_sale_view.xml',
-        'natuurpunt_sale_workflow.xml',
-        'security/ir.model.access.csv'
-    ],
-   'installable': True,
-    'application': True,
-}
+from openerp.osv import fields, osv
+from openerp.tools.translate import _
+from openerp import netsvc
+
+class sale_order(osv.osv):
+    _inherit = "sale.order"
+
+    def print_quotation(self, cr, uid, ids, context=None):
+        '''
+        This function prints the sales order and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        assert len(ids) == 1, 'This option should only be used for a single id at a time'
+        wf_service = netsvc.LocalService("workflow")
+        wf_service.trg_validate(uid, 'sale.order', ids[0], 'quotation_sent', cr)
+        datas = {
+                 'model': 'sale.order',
+                 'ids': ids,
+                 'form': self.read(cr, uid, ids[0], context=context),
+        }
+        return {'type': 'ir.actions.report.xml', 'report_name': 'natuurpunt.sale.order', 'datas': datas, 'nodestroy': True}
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

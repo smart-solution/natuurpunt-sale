@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+
+    <record model="ir.ui.view" id="view_natuurpunt_sale_invoice_form">
+        <field name="name">view.natuurpunt.sale.invoice.form</field>
+        <field name="model">account.invoice</field>
+        <field name="inherit_id" ref="account.invoice_form"/>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+			<field name="origin" position="replace"/>
+			<field name="fiscal_position" position="before">
+				<field name="origin" string="Brondocument" class="oe_inline" attrs="{'invisible':[('origin','=',False)]}" readonly="1"/>
+                <button colspan="2" name="view_origin_so" string="Brondocument"
+                        type="object" icon="gtk-execute" class="oe_inline"
+		                attrs="{'invisible':[('origin','=',False)]}"/>
+            </field>
+        </field>
+    </record>
+
+    </data>
+</openerp>
+
