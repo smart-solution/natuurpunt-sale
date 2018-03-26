@@ -30,6 +30,11 @@ msgid "Attachments"
 msgstr "Bijlages"
 
 #. module: natuurpunt_sale_cmis
+#: view:account.invoice:0
+msgid "Sale Order Attachments"
+msgstr "Verkoopsorder bijlages"
+
+#. module: natuurpunt_sale_cmis
 #: view:sale.order.mail.compose.message:0
 msgid "Subject..."
 msgstr "Onderwerp..."

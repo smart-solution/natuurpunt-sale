@@ -101,11 +101,12 @@
             <field name='model'>account.invoice</field>
             <field name="inherit_id" ref="account.invoice_form"/>
             <field name='arch' type='xml'>
-               <field name="origin" position="after">
+               <field name="partner_id" position="after">
 	               <field name="order_id" invisible="1"/>
 	           </field>
                <page string="Payments" position="after">
-                    <page string="Sale Order Attachments" >
+                   <page string="Sale Order Attachments" 
+                         attrs="{'invisible':[('order_id','=',False)]}">
                         <group name="Documenten" string="Verkoopsorder bijlages">
                             <field name="sale_order_attachment_ids" colspan="4" nolabel="1">
                                 <tree string="bijlage" editable="bottom" create="false" delete="false" >
@@ -117,9 +118,6 @@
                         </group>
                     </page>
                </page>
-               <page string="Sale Order Attachments" position="attributes">
-	               <attribute name='invisible'>[('order_id','=',False)]</attribute> 
-	           </page>
             </field>
         </record>
 
