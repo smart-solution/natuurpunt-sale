@@ -63,6 +63,26 @@ class sale_order(osv.osv):
             })
             return super(sale_order, self).copy(cr, uid, ids, default=default, context=context)
 
+class sale_order_line_make_invoice(osv.osv_memory):
+
+    _inherit="sale.order.line.make.invoice"
+
+    def _prepare_invoice(self, cr, uid, order, lines, context=None):
+        """
+        link order to invoice
+        """
+        res = super(sale_order_line_make_invoice, self)._prepare_invoice(cr, uid, order, lines, context=context)
+        res['order_id'] = order.id
+        return res
+
+class account_invoice(osv.osv):
+
+        _inherit = "account.invoice"
+
+        _columns = {
+            'order_id': fields.many2one('sale.order', 'Sale order', select=True),
+            'sale_order_attachment_ids': fields.related('order_id','attachment_ids', type='one2many', relation='sale.order.attachment', string='sale order attachment'),
+        }
 
 class ir_attachment(osv.osv):
 

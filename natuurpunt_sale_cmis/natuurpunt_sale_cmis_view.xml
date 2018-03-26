@@ -96,5 +96,26 @@
 
 		<menuitem id="ir_attachment_type_menu" parent="base.menu_base_config" action="action_ir_attachment_type_form" sequence="120" groups="base.group_sale_manager"/>
 
+        <record id="natuurpunt_invoice_customer_cmis_form" model="ir.ui.view">
+            <field name='name'>natuurpunt.invoice.customer.cmis.form</field>
+            <field name='model'>account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_form"/>
+            <field name='arch' type='xml'>
+               <page string="Payments" position="after">
+                    <page string="Attachments">
+                        <group name="Documenten" string="Verkoopsorder bijlages">
+                            <field name="sale_order_attachment_ids" colspan="4" nolabel="1">
+                                <tree string="bijlage" editable="bottom" create="false" delete="false" >
+                                  <field name="name" readonly="1"/>
+                                  <field name="doc_type_id"/>
+                                  <field name="url" invisible="1"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </page>
+                </page>
+            </field>
+        </record>
+
     </data>
 </openerp>
