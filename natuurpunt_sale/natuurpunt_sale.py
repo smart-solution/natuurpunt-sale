@@ -292,6 +292,21 @@ class sale_order_line(osv.osv):
                 result['analytic_dimension_3_id'] = line.analytic_dimension_3_id.id
         return result
 
+    def product_uom_change(self, cursor, user, ids, pricelist, product, qty=0,
+            uom=False, qty_uos=0, uos=False, name='', partner_id=False,
+            lang=False, update_tax=True, date_order=False, context=None):
+        """
+        set flag = True, keep name from input
+        """
+        context = context or {}
+        lang = lang or ('lang' in context and context['lang'])
+        if not uom:
+            return {'value': {'price_unit': 0.0, 'product_uom' : uom or False}}
+        return self.product_id_change(cursor, user, ids, pricelist, product,
+                qty=qty, uom=uom, qty_uos=qty_uos, uos=uos, name=name,
+                partner_id=partner_id, lang=lang, update_tax=update_tax,
+                date_order=date_order, flag=True, context=context)
+
 class sale_order_line_make_invoice(osv.osv_memory):
 
     _inherit="sale.order.line.make.invoice"
