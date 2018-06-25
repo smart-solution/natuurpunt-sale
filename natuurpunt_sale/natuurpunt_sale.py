@@ -349,14 +349,19 @@ class sale_order_line_make_invoice(osv.osv_memory):
                 raise osv.except_osv(_('Warning!'), warn)
             dif_qty = line.product_uom_qty - line.delivered_qty
             original_line_state = line.state
-            sales_order_line_obj.write(cr, uid, [line.id], {'product_uom_qty':line.delivered_qty, 'state':'done'})
+            if dif_qty < 0:
+                sales_order_line_obj.write(cr, uid, [line.id], {'state':'done'})
+                context['use_delivered_qty'] = True
+            else:
+                sales_order_line_obj.write(cr, uid, [line.id], {'product_uom_qty':line.delivered_qty, 'state':'done'})
+                context['use_delivered_qty'] = False
             if not order in invoices:
                 invoices[order] = []
             inv_line_id = sales_order_line_obj.invoice_line_create(cr, uid, [line.id], context=context)
             sales_order_line_obj.write(cr, uid, [line.id], {'invoice_line_id':inv_line_id[0]})
             invoices[order].append((inv_line_id[0],line.id))
 
-            if dif_qty:
+            if dif_qty > 0:
                 newline = sales_order_line_obj.copy(cr, uid, line.id, {
                    'product_uom_qty':dif_qty,
                    'delivered_qty': 0,
