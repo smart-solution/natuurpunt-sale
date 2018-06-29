@@ -2,7 +2,28 @@
 <openerp>
     <data>
 
-		<menuitem id="sale.menu_partner_form" sequence="150"/>
+		<delete model="ir.ui.menu" id="base.menu_partner_form" />
+
+        <record id="action_partner_form_natuurpunt" model="ir.actions.act_window">
+            <field name="name">Customers</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+			<field name="context">{'search_default_customer':1,'default_customer':1,'default_supplier':0}</field>
+            <field name="search_view_id" ref="base.view_res_partner_filter"/>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to add a contact in your address book.
+              </p><p>
+                OpenERP helps you easily track all activities related to
+                a customer; discussions, history of business opportunities,
+                documents, etc.
+              </p>
+            </field>
+        </record>
+
+		<menuitem id="menu_partner_form_natuurpunt" parent="base.menu_sales" action="action_partner_form_natuurpunt" sequence="150" name="Customers"/>
 
         <record id="view_order_partner_form_np" model="ir.ui.view">
             <field name='name'>view.sale.order.partner.form.np</field>
