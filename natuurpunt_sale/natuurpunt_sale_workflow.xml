@@ -29,12 +29,27 @@
             <field name="action">action_invoice_end()</field>
         </record>
 
+        <record id="act_invoice_except" model="workflow.activity">
+            <field name="wkf_id" ref="wkf_sale_invoice"/>
+            <field name="name">invoice_except</field>
+            <field name="kind">function</field>
+            <field name="action">action_invoice_except()</field>
+        </record>
+
         <record id="act_done" model="workflow.activity">
             <field name="wkf_id" ref="wkf_sale_invoice"/>
             <field name="name">done</field>
             <field name="flow_stop">True</field>
             <field name="kind">function</field>
             <field name="action">action_done()</field>
+        </record>
+
+        <record id="act_invoice_cancel" model="workflow.activity">
+            <field name="wkf_id" ref="wkf_sale_invoice"/>
+            <field name="name">invoice_cancel</field>
+            <field name="flow_stop">True</field>
+            <field name="kind">function</field>
+            <field name="action">action_invoice_cancel()</field>
         </record>
 
         <!-- Transistion -->
@@ -49,6 +64,17 @@
             <field name="act_from" ref="act_invoice"/>
             <field name="act_to" ref="act_invoice_end"/>
             <field name="signal">subflow.paid</field>
+        </record>
+
+        <record id="trans_invoice_invoice_except" model="workflow.transition">
+            <field name="act_from" ref="act_invoice"/>
+            <field name="act_to" ref="act_invoice_except"/>
+            <field name="signal">subflow.cancel</field>
+        </record>
+
+        <record id="trans_invoice_except_cancel" model="workflow.transition">
+            <field name="act_from" ref="act_invoice_except"/>
+            <field name="act_to" ref="act_invoice_cancel"/>
         </record>
 
         <record id="trans_invoice_end_done" model="workflow.transition">
