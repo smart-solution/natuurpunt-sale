@@ -203,6 +203,7 @@ class sale_invoice(osv.osv):
         'state':  fields.selection([
            ('open', 'Open'),
            ('done', 'Done'),
+           ('cancel','Cancel'),
         ], 'Status'),
     }
 
@@ -216,6 +217,19 @@ class sale_invoice(osv.osv):
 
     def action_invoice_end(self, cr, uid, ids, context=None):
         return self.write(cr,uid,ids,{'state':'done'})
+
+    def action_invoice_except(self, cr, uid, ids, context=None):
+        return self.write(cr,uid,ids,{'state':'cancel'})
+
+    def action_invoice_cancel(self, cr, uid, ids, context=None):
+        so_line_obj = self.pool.get('sale.order.line')
+        sale_invoice = self.browse(cr,uid,ids,context=context)
+        order_id = sale_invoice[0].order_id.id
+        so_line_ids = []
+        for line in sale_invoice[0].invoice_id.invoice_line:
+            so_line_ids += so_line_obj.search(cr, uid, [('invoice_line_id','=',line.id)])
+        self.pool.get('sale.order').write(cr, uid, [order_id], {'state':'progress'})
+        return so_line_obj.write(cr, uid, so_line_ids, {'state':'confirmed'})
 
     def action_done(self, cr, uid, ids, context=None):
         so_line_obj = self.pool.get('sale.order.line')
