@@ -17,6 +17,7 @@
 ##############################################################################
 
 from osv import osv, fields
+from openerp.tools.translate import _
 
 class account_invoice(osv.osv):
 
@@ -42,6 +43,12 @@ class account_invoice(osv.osv):
             'res_id': sale_invoice.order_id.id,
             }
 
+    def copy(self, cr, uid, id, default=None, context=None):
+        res = super(account_invoice, self).copy(cr, uid, id, default=default, context=context)
+        inv = self.browse(cr, uid, res)
+        if inv.origin:
+            raise osv.except_osv(_('Warning!'),_('You cannot duplicate an invoice with origin!'))
+        return res
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
