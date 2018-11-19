@@ -273,7 +273,7 @@
         <field name="inherit_id" ref="sale.view_order_tree"/>
         <field name="arch" type="xml">
           <field name="amount_total" position="before">
-            <field name="amount_untaxed"/>
+            <field name="amount_untaxed" sum="Totaalbedrag excl. btw"/>
           </field>
         </field>
       </record>
@@ -284,7 +284,7 @@
         <field name="inherit_id" ref="sale.view_quotation_tree"/>
         <field name="arch" type="xml">
           <field name="amount_total" position="before">
-            <field name="amount_untaxed"/>
+            <field name="amount_untaxed" sum="Totaalbedrag excl. btw"/>
           </field>
         </field>
       </record>
