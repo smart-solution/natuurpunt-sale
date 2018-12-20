@@ -32,6 +32,10 @@ class order(report.natuurpunt_rml_parse):
             'show_discount':self._show_discount,
         })
 
+    def _show_sales_contact(self, sales_man): 
+        import pdb; pdb.set_trace()
+        return '{} - {}'.format(sales_man.name, sales_man.mobile)
+
     def _show_discount(self, uid, context=None):
         cr = self.cr
         try: 

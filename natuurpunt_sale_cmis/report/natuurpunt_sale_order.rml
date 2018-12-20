@@ -133,7 +133,7 @@
           </para>
           <para style="terp_default_9">Tel. : [[ (o.partner_id.phone) or removeParentNode('para') ]]</para>
           <para style="terp_default_9">Fax : [[ (o.partner_id.fax) or removeParentNode('para') ]]</para>
-          <para style="terp_default_9">TVA : [[ (o.partner_id.vat) or removeParentNode('para') ]]</para>
+          <para style="terp_default_9">BTW : [[ (o.partner_id.vat) or removeParentNode('para') ]]</para>
           <para style="terp_default_9">
             <font color="white"> </font>
           </para>
@@ -286,9 +286,8 @@
       </tr>
       <tr>
         <td>
-          <para style="terp_default_9">
-            <font color="white"> </font>
-          </para>
+          <para style="terp_default_9">Voor meer informatie contacteer : [[ (o.user_id and o.user_id.name) or '' ]]</para>
+          <para style="terp_default_9">GSM : [[ (o.user_id and o.user_id.mobile) or '' ]]</para>
         </td>
         <td>
           <para style="terp_default_Bold_9"><b>Total :</b></para>
