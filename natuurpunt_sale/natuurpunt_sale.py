@@ -224,12 +224,15 @@ class sale_invoice(osv.osv):
     def action_invoice_cancel(self, cr, uid, ids, context=None):
         so_line_obj = self.pool.get('sale.order.line')
         sale_invoice = self.browse(cr,uid,ids,context=context)
-        order_id = sale_invoice[0].order_id.id
-        so_line_ids = []
-        for line in sale_invoice[0].invoice_id.invoice_line:
-            so_line_ids += so_line_obj.search(cr, uid, [('invoice_line_id','=',line.id)])
-        self.pool.get('sale.order').write(cr, uid, [order_id], {'state':'progress'})
-        return so_line_obj.write(cr, uid, so_line_ids, {'state':'confirmed'})
+        if sale_invoice[0].invoice_id.internal_number == False:
+            order_id = sale_invoice[0].order_id.id
+            so_line_ids = []
+            for line in sale_invoice[0].invoice_id.invoice_line:
+                so_line_ids += so_line_obj.search(cr, uid, [('invoice_line_id','=',line.id)])
+            self.pool.get('sale.order').write(cr, uid, [order_id], {'state':'progress'})
+            return so_line_obj.write(cr, uid, so_line_ids, {'state':'confirmed'})
+        else:
+            return True
 
     def action_done(self, cr, uid, ids, context=None):
         so_line_obj = self.pool.get('sale.order.line')
@@ -245,6 +248,24 @@ class sale_invoice(osv.osv):
             wf_service.trg_validate(uid, 'sale.order', order_id, 'all_lines', cr)
         # paid must be after the workflow because 'all_lines' will force the orderlines to done
         return so_line_obj.write(cr, uid, so_line_ids, {'state':'paid'})
+
+class account_invoice(osv.osv):
+    _inherit = "account.invoice"
+
+    # go from canceled state to draft state
+    def action_cancel_draft(self, cr, uid, ids, *args):
+        res = super(account_invoice, self).action_cancel_draft(cr, uid, ids)
+        wf_service = netsvc.LocalService("workflow")
+        for inv_id in ids:
+            sale_inv_ids = self.pool.get('sale.invoice').search(cr,uid,[('invoice_id','=',inv_id)])
+            for sale_inv in self.pool.get('sale.invoice').browse(cr,uid,sale_inv_ids):
+                sale_invoice_vals = {
+                    'order_id': sale_inv.order_id.id,
+                    'invoice_id': sale_inv.invoice_id.id,
+                }
+                sale_invoice_id = self.pool.get('sale.invoice').create(cr,uid,sale_invoice_vals)
+                wf_service.trg_validate(uid, 'sale.invoice', sale_invoice_id, 'sale_invoiced', cr)
+        return res
 
 class sale_order_line(osv.osv):
     _inherit = "sale.order.line"

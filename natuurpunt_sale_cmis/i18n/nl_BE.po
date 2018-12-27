@@ -1,98 +1,36 @@
 # Translation of OpenERP Server.
 # This file contains the translation of the following modules:
-# * sale
-# 
-# Translators:
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2012
+#	* natuurpunt_sale_cmis
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo 7.0\n"
+"Project-Id-Version: OpenERP Server 7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-08-14 00:10+0000\n"
-"PO-Revision-Date: 2015-05-23 13:53+0000\n"
-"Last-Translator: Martin Trigaux\n"
-"Language-Team: Dutch (Belgium) (http://www.transifex.com/odoo/odoo-7/language/nl_BE/)\n"
+"POT-Creation-Date: 2018-12-20 11:12+0000\n"
+"PO-Revision-Date: 2018-12-20 11:12+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: nl_BE\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: \n"
 
 #. module: natuurpunt_sale_cmis
-#: field:sale.order.attachment,name:0
-msgid "file name"
-msgstr "Bestandsnaam"
+#: field:sale.order.mail.compose.message,author_id:0
+msgid "Author"
+msgstr "Auteur"
 
 #. module: natuurpunt_sale_cmis
-#: view:sale.order:0
-#: field:sale.order.mail.compose.message,attachment_ids:0
-msgid "Attachments"
-msgstr "Bijlages"
-
-#. module: natuurpunt_sale_cmis
-#: view:account.invoice:0
-msgid "Sale Order Attachments"
-msgstr "Verkoopsorder bijlages"
-
-#. module: natuurpunt_sale_cmis
+#: model:ir.actions.act_window,name:natuurpunt_sale_cmis.action_email_compose_message_wizard_np_sale
 #: view:sale.order.mail.compose.message:0
-msgid "Subject..."
-msgstr "Onderwerp..."
+msgid "Compose Email"
+msgstr "Email opstellen"
 
 #. module: natuurpunt_sale_cmis
-#: field:sale.order.mail.compose.message,date:0
-msgid "Date"
-msgstr "Datum"
-
-#. module: natuurpunt_sale_cmis
-#: view:sale.order.mail.compose.message:0
-msgid "Attachment"
-msgstr "Bijlage"
-
-#. module: natuurpunt_sale_cmis
-#: field:sale.order.mail.compose.message,email_from:0
-msgid "From"
-msgstr "Van"
-
-#. module: natuurpunt_sale_cmis
-#: field:sale.order.mail.compose.message,subject:0
-msgid "Subject"
-msgstr "Onderwerp"
-
-#. module: natuurpunt_sale_cmis
-#: report:natuurpunt.sale.order:0
-msgid "Shipping address :"
-msgstr "Verzendadres:"
-
-#. module: natuurpunt_sale_cmis
-#: report:natuurpunt.sale.order:0
-msgid "VAT"
-msgstr "Btw"
-
-#. module: natuurpunt_sale_cmis
-#: report:natuurpunt.sale.order:0
-msgid "Tax"
-msgstr "Btw"
-
-#. module: natuurpunt_sale_cmis
-#: report:natuurpunt.sale.order:0
-msgid "Disc.(%)"
-msgstr "Korting(%)"
-
-#. module: natuurpunt_sale_cmis
-#: report:natuurpunt.sale.order:0
-msgid "Tel. :"
-msgstr "Tel.:"
-
-#. module: natuurpunt_sale_cmis
-#: report:natuurpunt.sale.order:0
-msgid "Invoice address :"
-msgstr "Factuuradres:"
-
-#. module: natuurpunt_sale_cmis
-#: report:natuurpunt.sale.order:0
-msgid "Order N°"
-msgstr "Ordernr."
+#: field:account.invoice,order_id:0
+#: field:sale.order.attachment,order_id:0
+msgid "Sale order"
+msgstr "Verkooporder"
 
 #. module: natuurpunt_sale_cmis
 #: report:natuurpunt.sale.order:0
@@ -101,8 +39,137 @@ msgstr "Totaal:"
 
 #. module: natuurpunt_sale_cmis
 #: report:natuurpunt.sale.order:0
+msgid "Salesperson"
+msgstr "Verkoper"
+
+#. module: natuurpunt_sale_cmis
+#: view:account.invoice:0
+msgid "Sale Order Attachments"
+msgstr "Verkoopsorder bijlages"
+
+#. module: natuurpunt_sale_cmis
+#: report:natuurpunt.sale.order:0
+msgid "Net Total :"
+msgstr "Nettototaal:"
+
+#. module: natuurpunt_sale_cmis
+#: field:sale.order.mail.compose.message,report_name:0
+msgid "report"
+msgstr "rapport"
+
+#. module: natuurpunt_sale_cmis
+#: report:natuurpunt.sale.order:0
+msgid "VAT"
+msgstr "Btw"
+
+#. module: natuurpunt_sale_cmis
+#: view:sale.order:0
+msgid "Extra documenten met type"
+msgstr "Extra documenten met type"
+
+#. module: natuurpunt_sale_cmis
+#: report:natuurpunt.sale.order:0
+msgid "Tax"
+msgstr "Btw"
+
+#. module: natuurpunt_sale_cmis
+#: code:addons/natuurpunt_sale_cmis/natuurpunt_sale_mail.py:97
+#, python-format
+msgid "Warning"
+msgstr "Warning"
+
+#. module: natuurpunt_sale_cmis
+#: model:ir.model,name:natuurpunt_sale_cmis.model_sale_order
+msgid "Sales Order"
+msgstr "Verkooporder"
+
+#. module: natuurpunt_sale_cmis
+#: field:sale.order.mail.compose.message,subject:0
+msgid "Subject"
+msgstr "Onderwerp"
+
+#. module: natuurpunt_sale_cmis
+#: field:sale.order.mail.compose.message,email_from:0
+msgid "From"
+msgstr "Van"
+
+#. module: natuurpunt_sale_cmis
+#: report:natuurpunt.sale.order:0
+msgid "Order N°"
+msgstr "Ordernr."
+
+#. module: natuurpunt_sale_cmis
+#: report:natuurpunt.sale.order:0
+msgid "Disc.(%)"
+msgstr "Korting(%)"
+
+#. module: natuurpunt_sale_cmis
+#: model:ir.actions.act_window,name:natuurpunt_sale_cmis.action_ir_attachment_type_form
+#: field:ir.attachment.type,name:0
+#: model:ir.ui.menu,name:natuurpunt_sale_cmis.ir_attachment_type_menu
+#: field:sale.order.attachment,doc_type_id:0
+msgid "Document type"
+msgstr "Document type"
+
+#. module: natuurpunt_sale_cmis
+#: view:sale.order:0
+msgid "Other Information"
+msgstr "Overige informatie"
+
+#. module: natuurpunt_sale_cmis
+#: report:natuurpunt.sale.order:0
+msgid "Quotation Date"
+msgstr "Offerte datum"
+
+#. module: natuurpunt_sale_cmis
+#: report:natuurpunt.sale.order:0
 msgid "Taxes :"
 msgstr "Btw:"
+
+#. module: natuurpunt_sale_cmis
+#: view:account.invoice:0
+msgid "Verkoopsorder bijlages"
+msgstr "Verkoopsorder bijlages"
+
+#. module: natuurpunt_sale_cmis
+#: model:ir.model,name:natuurpunt_sale_cmis.model_sale_order_line_make_invoice
+msgid "Sale OrderLine Make_invoice"
+msgstr "Factuur maken van verkooporderlijnen"
+
+#. module: natuurpunt_sale_cmis
+#: view:sale.order.mail.compose.message:0
+msgid "Attachment"
+msgstr "Bijlage"
+
+#. module: natuurpunt_sale_cmis
+#: report:natuurpunt.sale.order:0
+msgid "BTW :"
+msgstr "BTW :"
+
+#. module: natuurpunt_sale_cmis
+#: view:ir.attachment.type:0
+msgid "documenttype"
+msgstr "documenttype"
+
+#. module: natuurpunt_sale_cmis
+#: field:sale.order.mail.compose.message,date:0
+msgid "Date"
+msgstr "Datum"
+
+#. module: natuurpunt_sale_cmis
+#: view:sale.order.mail.compose.message:0
+msgid "CC"
+msgstr "CC"
+
+#. module: natuurpunt_sale_cmis
+#: view:sale.order.mail.compose.message:0
+msgid "Subject..."
+msgstr "Onderwerp..."
+
+#. module: natuurpunt_sale_cmis
+#: report:natuurpunt.sale.order:0
+msgid "Quantity"
+msgstr "Hoeveelheid"
 
 #. module: natuurpunt_sale_cmis
 #: report:natuurpunt.sale.order:0
@@ -110,14 +177,25 @@ msgid "Your Reference"
 msgstr "Uw referentie"
 
 #. module: natuurpunt_sale_cmis
-#: report:natuurpunt.sale.order:0
-msgid "Price"
-msgstr "Prijs"
+#: view:sale.order:0
+#: field:sale.order.mail.compose.message,attachment_ids:0
+msgid "Attachments"
+msgstr "Bijlages"
 
 #. module: natuurpunt_sale_cmis
-#: report:natuurpunt.sale.order:0
-msgid "Fax :"
-msgstr "Fax:"
+#: model:ir.model,name:natuurpunt_sale_cmis.model_account_invoice
+msgid "Invoice"
+msgstr "Factuur"
+
+#. module: natuurpunt_sale_cmis
+#: view:sale.order.mail.compose.message:0
+msgid "Cancel"
+msgstr "Annuleren"
+
+#. module: natuurpunt_sale_cmis
+#: view:sale.order.mail.compose.message:0
+msgid "E-mail"
+msgstr "E-mail"
 
 #. module: natuurpunt_sale_cmis
 #: report:natuurpunt.sale.order:0
@@ -126,18 +204,43 @@ msgstr "Eenheidsprijs"
 
 #. module: natuurpunt_sale_cmis
 #: report:natuurpunt.sale.order:0
+msgid "Description"
+msgstr "Omschrijving"
+
+#. module: natuurpunt_sale_cmis
+#: field:sale.order.mail.compose.message,type:0
+msgid "Type"
+msgstr "Type"
+
+#. module: natuurpunt_sale_cmis
+#: report:natuurpunt.sale.order:0
+msgid "Price"
+msgstr "Prijs"
+
+#. module: natuurpunt_sale_cmis
+#: report:natuurpunt.sale.order:0
+msgid "Tel. :"
+msgstr "Tel.:"
+
+#. module: natuurpunt_sale_cmis
+#: report:natuurpunt.sale.order:0
+msgid "GSM :"
+msgstr "GSM :"
+
+#. module: natuurpunt_sale_cmis
+#: report:natuurpunt.sale.order:0
 msgid "Date Ordered"
 msgstr "Besteldatum"
 
 #. module: natuurpunt_sale_cmis
-#: report:natuurpunt.sale.order:0
-msgid "Net Total :"
-msgstr "Nettototaal:"
+#: view:account.invoice:0
+msgid "Payments"
+msgstr "Betalingen"
 
 #. module: natuurpunt_sale_cmis
-#: report:natuurpunt.sale.order:0
-msgid "Description"
-msgstr "Omschrijving"
+#: field:sale.order.attachment,name:0
+msgid "file name"
+msgstr "Bestandsnaam"
 
 #. module: natuurpunt_sale_cmis
 #: report:natuurpunt.sale.order:0
@@ -147,14 +250,5 @@ msgstr "Betalingstermijn"
 #. module: natuurpunt_sale_cmis
 #: report:natuurpunt.sale.order:0
 msgid "Quotation N°"
-msgstr "Offertenr."
+msgstr "Offerte"
 
-#. module: natuurpunt_sale_cmis
-#: report:natuurpunt.sale.order:0
-msgid "Quotation Date"
-msgstr "Offerte datum"
-
-#. module: natuurpunt_sale_cmis
-#: report:natuurpunt.sale.order:0
-msgid "Salesperson"
-msgstr "Verkoper"
