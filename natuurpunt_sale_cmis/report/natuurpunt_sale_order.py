@@ -32,10 +32,6 @@ class order(report.natuurpunt_rml_parse):
             'show_discount':self._show_discount,
         })
 
-    def _show_sales_contact(self, sales_man): 
-        import pdb; pdb.set_trace()
-        return '{} - {}'.format(sales_man.name, sales_man.mobile)
-
     def _show_discount(self, uid, context=None):
         cr = self.cr
         try: 
@@ -44,7 +40,7 @@ class order(report.natuurpunt_rml_parse):
             return False
         return group_id in [x.id for x in self.pool.get('res.users').browse(cr, uid, uid, context=context).groups_id]
 
-report_sxw.report_sxw('report.natuurpunt.sale.order', 'sale.order', 'addons/natuurpunt_sale/report/natuurpunt_sale_order.rml', parser=order, header="external")
+report_sxw.report_sxw('report.natuurpunt.sale.order', 'sale.order', 'addons/natuurpunt_sale_cmis/report/natuurpunt_sale_order.rml', parser=order, header="external")
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 

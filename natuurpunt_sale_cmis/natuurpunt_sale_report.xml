@@ -7,7 +7,7 @@
             model="sale.order"
             name="natuurpunt.sale.order"
             rml="natuurpunt_sale_cmis/report/natuurpunt_sale_order.rml"
-            string="Natuurpunt Offerte / Order"
+            string="Offerte"
             attachment="((object.name or '').replace('/',''))"
             attachment_use="True"
             usage="default"
