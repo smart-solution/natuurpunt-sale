@@ -29,12 +29,56 @@ from functools import partial
 class sale_order(osv.osv):
     _inherit = "sale.order"
 
+    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+        cur_obj = self.pool.get('res.currency')
+        res = {}
+        for order in self.browse(cr, uid, ids, context=context):
+            res[order.id] = {
+                'amount_untaxed': 0.0,
+                'amount_tax': 0.0,
+                'amount_total': 0.0,
+            }
+            val = val1 = 0.0
+            cur = order.pricelist_id.currency_id
+            for line in order.order_line:
+                if line.state != 'closed':
+                    val1 += line.price_subtotal
+                    val += self._amount_line_tax(cr, uid, line, context=context)
+            res[order.id]['amount_tax'] = cur_obj.round(cr, uid, cur, val)
+            res[order.id]['amount_untaxed'] = cur_obj.round(cr, uid, cur, val1)
+            res[order.id]['amount_total'] = res[order.id]['amount_untaxed'] + res[order.id]['amount_tax']
+        return res
+
+    def _get_order(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('sale.order.line').browse(cr, uid, ids, context=context):
+            result[line.order_id.id] = True
+        return result.keys()
+
     _columns = {
         'cancel_reason_id': fields.many2one('sale.order.cancel.reason', 'Reden annulatie'),
         'cancel_reason': fields.text('Cancel Reason'),
         'has_deposit': fields.boolean('Borg'),
         'deposit_amount': fields.float('Borg bedrag'),
         'deposit_credit_note_id': fields.many2one('account.invoice', 'Borg Credit Nota'),
+        'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
+            store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty','state'], 10),
+            },
+            multi='sums', help="The amount without tax.", track_visibility='always'),
+        'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Taxes',
+            store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty','state'], 10),
+            },
+            multi='sums', help="The tax amount."),
+        'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
+            store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty','state'], 10),
+            },
+            multi='sums', help="The total amount."),
         'state': fields.selection([
             ('draft', 'Draft Quotation'),
             ('sent', 'Quotation Sent'),
@@ -271,6 +315,7 @@ class sale_order_line(osv.osv):
     _inherit = "sale.order.line"
 
     _columns = {
+
          'uitvoering_jaar': fields.char('Uitvoering Jaar', size=4),
          'facturatie_jaar': fields.char('Facturatie Jaar', size=4),
          'state': fields.selection([('cancel', 'Cancelled'),('draft', 'Draft'),('confirmed', 'Confirmed'),('sent','Verstuurd'),('manual', 'In uitvoering'),('closed', 'Gesloten'),('exception', 'Exception'),('done', 'Done'),('paid','Betaald')], 'Status', required=True, readonly=True,help=''),
@@ -287,7 +332,8 @@ class sale_order_line(osv.osv):
             sorted,
             min)(order.order_line)
         # write of sale.order takes care of closed/paid as they are equal in weight 
-        return self.pool.get('sale.order').write(cr, uid, [order.id], {'state':state[1]}) if state[0] else True
+        res = self.pool.get('sale.order').write(cr, uid, [order.id], {'state':state[1]}) if state[0] else True
+        return {'type': 'ir.actions.client', 'tag': 'reload',}
 
     def create(self, cr, uid, vals, context=None):
         if 'price_unit' in vals and vals['price_unit'] < 0:
