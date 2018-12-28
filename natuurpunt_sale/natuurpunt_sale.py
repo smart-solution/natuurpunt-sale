@@ -29,6 +29,16 @@ from functools import partial
 class sale_order(osv.osv):
     _inherit = "sale.order"
 
+    def _amount_line_tax(self, cr, uid, line, context=None):
+        uom_qty = line.delivered_qty if line.delivered_qty > line.product_uom_qty else line.product_uom_qty
+        val = 0.0
+        for c in self.pool.get('account.tax').compute_all(cr, uid, line.tax_id, 
+                                                          line.price_unit * (1-(line.discount or 0.0)/100.0), 
+                                                          uom_qty, 
+                                                          line.product_id, line.order_id.partner_id)['taxes']:
+            val += c.get('amount', 0.0)
+        return val
+
     def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
         cur_obj = self.pool.get('res.currency')
         res = {}
@@ -64,19 +74,19 @@ class sale_order(osv.osv):
         'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
             store={
                 'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
-                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty','state'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty','state','delivered_qty'], 10),
             },
             multi='sums', help="The amount without tax.", track_visibility='always'),
         'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Taxes',
             store={
                 'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
-                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty','state'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty','state','delivered_qty'], 10),
             },
             multi='sums', help="The tax amount."),
         'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
             store={
                 'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
-                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty','state'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty','state','delivered_qty'], 10),
             },
             multi='sums', help="The total amount."),
         'state': fields.selection([
@@ -314,11 +324,26 @@ class account_invoice(osv.osv):
 class sale_order_line(osv.osv):
     _inherit = "sale.order.line"
 
+    def _amount_line(self, cr, uid, ids, field_name, arg, context=None):
+        tax_obj = self.pool.get('account.tax')
+        cur_obj = self.pool.get('res.currency')
+        res = {}
+        if context is None:
+            context = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            uom_qty = line.delivered_qty if line.delivered_qty > line.product_uom_qty else line.product_uom_qty
+            price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
+            taxes = tax_obj.compute_all(cr, uid, line.tax_id, price, uom_qty, line.product_id, line.order_id.partner_id)
+            cur = line.order_id.pricelist_id.currency_id
+            res[line.id] = cur_obj.round(cr, uid, cur, taxes['total'])
+        return res
+
     _columns = {
 
          'uitvoering_jaar': fields.char('Uitvoering Jaar', size=4),
          'facturatie_jaar': fields.char('Facturatie Jaar', size=4),
          'state': fields.selection([('cancel', 'Cancelled'),('draft', 'Draft'),('confirmed', 'Confirmed'),('sent','Verstuurd'),('manual', 'In uitvoering'),('closed', 'Gesloten'),('exception', 'Exception'),('done', 'Done'),('paid','Betaald')], 'Status', required=True, readonly=True,help=''),
+         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
          'invoice_line_id': fields.many2one('account.invoice.line', 'Invoice Line'),
     }
 
