@@ -134,9 +134,12 @@
 			<attribute name="required">1</attribute>
 			<attribute name="domain">[('membership_product','=',False),('magazine_product','=',False)]</attribute>
 		</xpath>
+                <xpath expr="//field[@name='order_line']/tree//field[@name='tax_id']" position="attributes">
+                        <attribute name="required">1</attribute>
+                </xpath>
 		<xpath expr="//field[@name='order_line']/tree//field[@name='price_subtotal']" position="after">
-			<field name="uitvoering_jaar"/>
-			<field name="facturatie_jaar"/>
+			<field name="uitvoering_jaar" required="1"/>
+			<field name="facturatie_jaar" required="1"/>
 			<field name="state"/>
 		    	<button name='action_force_close' string='Gesloten' type='object' icon="gtk-cancel" states="manual,confirmed" confirm="Verkoopslijn sluiten?"/>
 		</xpath>
