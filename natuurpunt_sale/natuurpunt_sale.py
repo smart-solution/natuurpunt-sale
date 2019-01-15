@@ -203,13 +203,9 @@ class sale_order_add_line(osv.osv_memory):
         'facturatie_jaar': fields.char('Facturatie Jaar', size=4, required=True),
         'state': fields.selection([
             ('draft', 'Draft Quotation'),
-            ('sent', 'Quotation Sent'),
-            ('cancel', 'Cancelled'),
-            ('waiting_date', 'Waiting Schedule'),
-            ('progress', 'Sales Order'),
-            ('manual', 'Sale to Invoice'),
-            ('invoice_except', 'Invoice Exception'),
-            ('done', 'Done'),
+            ('confirmed', 'Confirmed'),
+            ('sent','Verstuurd'),
+            ('manual', 'In uitvoering'),
             ], 'Status'),
         'order_id': fields.many2one('sale.order', 'Order'),
     }
@@ -238,7 +234,7 @@ class sale_order_add_line(osv.osv_memory):
             'tax_id': [(6,0,tax_ids)],
             'price_unit': wiz.price_unit,
             'order_id': wiz.order_id.id,
-            'state': sale_order.state,
+            'state': 'confirmed' if sale_order.state == 'progress' else sale_order.state,
             'uitvoering_jaar':wiz.uitvoering_jaar,
             'facturatie_jaar':wiz.facturatie_jaar,
         }
@@ -343,10 +339,18 @@ class sale_order_line(osv.osv):
         return res
 
     _columns = {
-
          'uitvoering_jaar': fields.char('Uitvoering Jaar', size=4),
          'facturatie_jaar': fields.char('Facturatie Jaar', size=4),
-         'state': fields.selection([('cancel', 'Cancelled'),('draft', 'Draft'),('confirmed', 'Confirmed'),('sent','Verstuurd'),('manual', 'In uitvoering'),('closed', 'Gesloten'),('exception', 'Exception'),('done', 'Done'),('paid','Betaald')], 'Status', required=True, readonly=True,help=''),
+         'state': fields.selection([
+              ('cancel', 'Cancelled'),
+              ('draft', 'Draft'),
+              ('confirmed', 'Confirmed'),
+              ('sent','Verstuurd'),
+              ('manual', 'In uitvoering'),
+              ('closed', 'Gesloten'),
+              ('exception', 'Exception'),
+              ('done', 'Done'),
+              ('paid','Betaald')], 'Status', required=True, readonly=True,help=''),
          'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
          'invoice_line_id': fields.many2one('account.invoice.line', 'Invoice Line'),
     }
