@@ -199,6 +199,8 @@ class sale_order_add_line(osv.osv_memory):
         'product_uom': fields.many2one('product.uom', 'Unit of Measure ', required=True),
         'tax_id': fields.many2many('account.tax', 'sale_order_tax', 'order_line_id', 'tax_id', 'Taxes'),
         'price_unit': fields.float('Unit Price', required=True, digits_compute= dp.get_precision('Product Price')),
+        'uitvoering_jaar': fields.char('Uitvoering Jaar', size=4, required=True),
+        'facturatie_jaar': fields.char('Facturatie Jaar', size=4, required=True),
         'state': fields.selection([
             ('draft', 'Draft Quotation'),
             ('sent', 'Quotation Sent'),
@@ -237,6 +239,8 @@ class sale_order_add_line(osv.osv_memory):
             'price_unit': wiz.price_unit,
             'order_id': wiz.order_id.id,
             'state': sale_order.state,
+            'uitvoering_jaar':wiz.uitvoering_jaar,
+            'facturatie_jaar':wiz.facturatie_jaar,
         }
         self.pool.get('sale.order.line').create(cr, uid, line_vals)
         return True

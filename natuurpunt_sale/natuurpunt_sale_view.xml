@@ -26,7 +26,9 @@
 			    <field name="price_unit"/>
 			    <field name="product_uom_qty" string="Qty"/>
 			    <field name="product_uom" string="Unit of Measure" groups="product.group_uom"/>
-			    <field name="tax_id" widget="many2many_tags"/>
+			    <field name="tax_id" widget="many2many_tags" required="1"/>
+                            <field name="uitvoering_jaar" required="1"/>
+                            <field name="facturatie_jaar" required="1"/>
 			</group>
                     </group>
                     <footer>
