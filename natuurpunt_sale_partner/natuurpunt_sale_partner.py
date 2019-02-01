@@ -20,6 +20,38 @@ from osv import osv, fields
 from openerp.tools.translate import _
 from openerp import SUPERUSER_ID
 
+class res_partner(osv.osv):
+    _inherit = 'res.partner'
+
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=80):
+        """
+        Returns a list of tupples containing id, name, as internally it is called {def name_get}
+        result format: {[(id, name), (id, name), ...]}
+
+        @param cr: A database cursor
+        @param user: ID of the user currently logged in
+        @param name: name to search
+        @param args: other arguments
+        @param operator: default operator is 'ilike', it can be changed
+        @param context: context arguments, like lang, time zone
+        @param limit: Returns first 'n' ids of complete result, default is 80.
+
+        @return: Returns a list of tupples containing id and name
+        """       
+        if not args:
+            args = []
+        if context is None:
+            context = {}
+        ids = []
+        if context and 'offerte' in context:
+            quotation_ids = self.pool.get('sale.order').search(cr, user, [('state','=','draft')], context=context or {}) 
+            for quotation in self.pool.get('sale.order').browse(cr, user, quotation_ids, context=context or {}):
+                if name.lower() in quotation.partner_id.name.lower():
+                    ids.append(quotation.partner_id.id)
+	else:
+            ids = self.search(cr, user, args, limit=limit, context=context or {})
+        return self.name_get(cr, user, ids, context=context)
+
 class sale_order(osv.osv):
     _inherit = 'sale.order'
 
