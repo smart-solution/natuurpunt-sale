@@ -44,7 +44,7 @@ class res_partner(osv.osv):
             context = {}
         ids = []
         if context and 'offerte' in context:
-            quotation_ids = self.pool.get('sale.order').search(cr, user, [('state','=','draft')], context=context or {}) 
+            quotation_ids = self.pool.get('sale.order').search(cr, user, [('state','in',['draft','sent'])], context=context or {}) 
             for quotation in self.pool.get('sale.order').browse(cr, user, quotation_ids, context=context or {}):
                 if name.lower() in quotation.partner_id.name.lower():
                     ids.append(quotation.partner_id.id)
