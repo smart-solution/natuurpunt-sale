@@ -55,6 +55,10 @@
             <field name="context">{'offerte':1}</field>
         </record>
 
+        <record id="sale.action_orders" model="ir.actions.act_window">
+            <field name="context">{'natuurpunt_sale':1}</field>
+        </record>
+
         <record model="ir.ui.view" id="view_natuurpunt_sales_partner_form">
             <field name="name">view.natuurpunt.sales.partner.form</field>
             <field name="model">res.partner</field>

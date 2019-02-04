@@ -19,6 +19,11 @@
 from osv import osv, fields
 from openerp.tools.translate import _
 from openerp import SUPERUSER_ID
+from natuurpunt_tools import sql_wrapper
+
+def get_company_id(obj,cr,uid):
+    user = obj.browse(cr, uid, uid)
+    return user.company_id.id
 
 class res_partner(osv.osv):
     _inherit = 'res.partner'
@@ -44,10 +49,23 @@ class res_partner(osv.osv):
             context = {}
         ids = []
         if context and 'offerte' in context:
-            quotation_ids = self.pool.get('sale.order').search(cr, user, [('state','in',['draft','sent'])], context=context or {}) 
-            for quotation in self.pool.get('sale.order').browse(cr, user, quotation_ids, context=context or {}):
-                if name.lower() in quotation.partner_id.name.lower():
-                    ids.append(quotation.partner_id.id)
+            sql_stat = "select distinct on (partner_id) id from sale_order where state in ('draft','sent')" + \
+                       " and company_id = {}".format(get_company_id(self.pool.get('res.users'),cr,user))
+            res = sql_wrapper(sql_stat)(cr)
+            if res:
+                quotation_ids = [x['id'] for x in res]
+                for quotation in self.pool.get('sale.order').browse(cr, user, quotation_ids, context=context or {}):
+                    if name.lower() in quotation.partner_id.name.lower():
+                        ids.append(quotation.partner_id.id)
+	elif context and 'natuurpunt_sale' in context:
+            sql_stat = "select distinct on (partner_id) id from sale_order where state not in ('draft','sent','cancel')" + \
+                       " and company_id = {}".format(get_company_id(self.pool.get('res.users'),cr,user))
+            res = sql_wrapper(sql_stat)(cr)
+            if res:
+                sale_ids = [x['id'] for x in res]
+                for sale in self.pool.get('sale.order').browse(cr, user, sale_ids, context=context or {}):
+                    if name.lower() in sale.partner_id.name.lower():
+                        ids.append(sale.partner_id.id)
 	else:
             ids = self.search(cr, user, args, limit=limit, context=context or {})
         return self.name_get(cr, user, ids, context=context)
