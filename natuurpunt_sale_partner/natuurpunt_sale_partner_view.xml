@@ -2,7 +2,7 @@
 <openerp>
     <data>
 
-		<delete model="ir.ui.menu" id="base.menu_partner_form" />
+	<delete model="ir.ui.menu" id="base.menu_partner_form" />
 
         <record id="action_partner_form_natuurpunt" model="ir.actions.act_window">
             <field name="name">Customers</field>
@@ -23,7 +23,7 @@
             </field>
         </record>
 
-		<menuitem id="menu_partner_form_natuurpunt" parent="base.menu_sales" action="action_partner_form_natuurpunt" sequence="150" name="Customers"/>
+	<menuitem id="menu_partner_form_natuurpunt" parent="base.menu_sales" action="action_partner_form_natuurpunt" sequence="150" name="Customers"/>
 
         <record id="view_order_partner_form_np" model="ir.ui.view">
             <field name='name'>view.sale.order.partner.form.np</field>
@@ -53,6 +53,18 @@
 
         <record id="sale.action_quotations" model="ir.actions.act_window">
             <field name="context">{'offerte':1}</field>
+        </record>
+
+        <record model="ir.ui.view" id="view_natuurpunt_sales_partner_form">
+            <field name="name">view.natuurpunt.sales.partner.form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="natuurpunt_contacten.view_natuurpunt_contacten_partner_form"/>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@string='Sales &amp; Purchases']" position="attributes">
+                    <attribute name="groups">base.group_partner_manager,base.group_sale_salesman</attribute>
+                </xpath>
+            </field>
         </record>
 
     </data>

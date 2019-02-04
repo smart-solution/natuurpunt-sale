@@ -25,7 +25,7 @@
     "description": """
     Natuurpunt Sale Partner and contact extentions
 """,
-    "depends" : ["sale","natuurpunt_account_invoice_ext",],
+    "depends" : ["sale","natuurpunt_account_invoice_ext","natuurpunt_contacten"],
     "data" : ["natuurpunt_sale_partner_view.xml",],
     "init_xml" : [],
     "update_xml" : [],
