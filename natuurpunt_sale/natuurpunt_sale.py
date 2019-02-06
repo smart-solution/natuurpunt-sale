@@ -188,7 +188,7 @@ class sale_order_add_line(osv.osv_memory):
 
     _columns = {
         'name': fields.char('Description', required=True),
-        'product_id': fields.many2one('product.product', 'Product', domain=[('sale_ok', '=', True)]),
+        'product_id': fields.many2one('product.product', 'Product', domain=[('sale_ok', '=', True),('membership_product','=',False),('magazine_product','=',False)]),
         'analytic_dimension_1_id': fields.many2one('account.analytic.account', 'Dimensie 1'),
         'analytic_dimension_2_id': fields.many2one('account.analytic.account', 'Dimensie 2'),
         'analytic_dimension_3_id': fields.many2one('account.analytic.account', 'Dimensie 3'),
