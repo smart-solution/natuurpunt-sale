@@ -29,12 +29,66 @@ from functools import partial
 class sale_order(osv.osv):
     _inherit = "sale.order"
 
+    def _amount_line_tax(self, cr, uid, line, context=None):
+        uom_qty = line.delivered_qty if line.delivered_qty > line.product_uom_qty else line.product_uom_qty
+        val = 0.0
+        for c in self.pool.get('account.tax').compute_all(cr, uid, line.tax_id, 
+                                                          line.price_unit * (1-(line.discount or 0.0)/100.0), 
+                                                          uom_qty, 
+                                                          line.product_id, line.order_id.partner_id)['taxes']:
+            val += c.get('amount', 0.0)
+        return val
+
+    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+        cur_obj = self.pool.get('res.currency')
+        res = {}
+        for order in self.browse(cr, uid, ids, context=context):
+            res[order.id] = {
+                'amount_untaxed': 0.0,
+                'amount_tax': 0.0,
+                'amount_total': 0.0,
+            }
+            val = val1 = 0.0
+            cur = order.pricelist_id.currency_id
+            for line in order.order_line:
+                if line.state != 'closed':
+                    val1 += line.price_subtotal
+                    val += self._amount_line_tax(cr, uid, line, context=context)
+            res[order.id]['amount_tax'] = cur_obj.round(cr, uid, cur, val)
+            res[order.id]['amount_untaxed'] = cur_obj.round(cr, uid, cur, val1)
+            res[order.id]['amount_total'] = res[order.id]['amount_untaxed'] + res[order.id]['amount_tax']
+        return res
+
+    def _get_order(self, cr, uid, ids, context=None):
+        result = {}
+        for line in self.pool.get('sale.order.line').browse(cr, uid, ids, context=context):
+            result[line.order_id.id] = True
+        return result.keys()
+
     _columns = {
         'cancel_reason_id': fields.many2one('sale.order.cancel.reason', 'Reden annulatie'),
         'cancel_reason': fields.text('Cancel Reason'),
         'has_deposit': fields.boolean('Borg'),
         'deposit_amount': fields.float('Borg bedrag'),
         'deposit_credit_note_id': fields.many2one('account.invoice', 'Borg Credit Nota'),
+        'amount_untaxed': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
+            store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty','state','delivered_qty'], 10),
+            },
+            multi='sums', help="The amount without tax.", track_visibility='always'),
+        'amount_tax': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Taxes',
+            store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty','state','delivered_qty'], 10),
+            },
+            multi='sums', help="The tax amount."),
+        'amount_total': fields.function(_amount_all, digits_compute=dp.get_precision('Account'), string='Total',
+            store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order.line': (_get_order, ['price_unit', 'tax_id', 'discount', 'product_uom_qty','state','delivered_qty'], 10),
+            },
+            multi='sums', help="The total amount."),
         'state': fields.selection([
             ('draft', 'Draft Quotation'),
             ('sent', 'Quotation Sent'),
@@ -134,7 +188,7 @@ class sale_order_add_line(osv.osv_memory):
 
     _columns = {
         'name': fields.char('Description', required=True),
-        'product_id': fields.many2one('product.product', 'Product'),
+        'product_id': fields.many2one('product.product', 'Product', domain=[('sale_ok', '=', True),('membership_product','=',False),('magazine_product','=',False)]),
         'analytic_dimension_1_id': fields.many2one('account.analytic.account', 'Dimensie 1'),
         'analytic_dimension_2_id': fields.many2one('account.analytic.account', 'Dimensie 2'),
         'analytic_dimension_3_id': fields.many2one('account.analytic.account', 'Dimensie 3'),
@@ -145,15 +199,13 @@ class sale_order_add_line(osv.osv_memory):
         'product_uom': fields.many2one('product.uom', 'Unit of Measure ', required=True),
         'tax_id': fields.many2many('account.tax', 'sale_order_tax', 'order_line_id', 'tax_id', 'Taxes'),
         'price_unit': fields.float('Unit Price', required=True, digits_compute= dp.get_precision('Product Price')),
+        'uitvoering_jaar': fields.char('Uitvoering Jaar', size=4, required=True),
+        'facturatie_jaar': fields.char('Facturatie Jaar', size=4, required=True),
         'state': fields.selection([
             ('draft', 'Draft Quotation'),
-            ('sent', 'Quotation Sent'),
-            ('cancel', 'Cancelled'),
-            ('waiting_date', 'Waiting Schedule'),
-            ('progress', 'Sales Order'),
-            ('manual', 'Sale to Invoice'),
-            ('invoice_except', 'Invoice Exception'),
-            ('done', 'Done'),
+            ('confirmed', 'Confirmed'),
+            ('sent','Verstuurd'),
+            ('manual', 'In uitvoering'),
             ], 'Status'),
         'order_id': fields.many2one('sale.order', 'Order'),
     }
@@ -182,7 +234,9 @@ class sale_order_add_line(osv.osv_memory):
             'tax_id': [(6,0,tax_ids)],
             'price_unit': wiz.price_unit,
             'order_id': wiz.order_id.id,
-            'state': sale_order.state,
+            'state': 'confirmed' if sale_order.state == 'progress' else sale_order.state,
+            'uitvoering_jaar':wiz.uitvoering_jaar,
+            'facturatie_jaar':wiz.facturatie_jaar,
         }
         self.pool.get('sale.order.line').create(cr, uid, line_vals)
         return True
@@ -270,10 +324,34 @@ class account_invoice(osv.osv):
 class sale_order_line(osv.osv):
     _inherit = "sale.order.line"
 
+    def _amount_line(self, cr, uid, ids, field_name, arg, context=None):
+        tax_obj = self.pool.get('account.tax')
+        cur_obj = self.pool.get('res.currency')
+        res = {}
+        if context is None:
+            context = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            uom_qty = line.delivered_qty if line.delivered_qty > line.product_uom_qty else line.product_uom_qty
+            price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
+            taxes = tax_obj.compute_all(cr, uid, line.tax_id, price, uom_qty, line.product_id, line.order_id.partner_id)
+            cur = line.order_id.pricelist_id.currency_id
+            res[line.id] = cur_obj.round(cr, uid, cur, taxes['total'])
+        return res
+
     _columns = {
          'uitvoering_jaar': fields.char('Uitvoering Jaar', size=4),
          'facturatie_jaar': fields.char('Facturatie Jaar', size=4),
-         'state': fields.selection([('cancel', 'Cancelled'),('draft', 'Draft'),('confirmed', 'Confirmed'),('sent','Verstuurd'),('manual', 'In uitvoering'),('closed', 'Gesloten'),('exception', 'Exception'),('done', 'Done'),('paid','Betaald')], 'Status', required=True, readonly=True,help=''),
+         'state': fields.selection([
+              ('cancel', 'Cancelled'),
+              ('draft', 'Draft'),
+              ('confirmed', 'Confirmed'),
+              ('sent','Verstuurd'),
+              ('manual', 'In uitvoering'),
+              ('closed', 'Gesloten'),
+              ('exception', 'Exception'),
+              ('done', 'Done'),
+              ('paid','Betaald')], 'Status', required=True, readonly=True,help=''),
+         'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
          'invoice_line_id': fields.many2one('account.invoice.line', 'Invoice Line'),
     }
 
@@ -287,7 +365,8 @@ class sale_order_line(osv.osv):
             sorted,
             min)(order.order_line)
         # write of sale.order takes care of closed/paid as they are equal in weight 
-        return self.pool.get('sale.order').write(cr, uid, [order.id], {'state':state[1]}) if state[0] else True
+        res = self.pool.get('sale.order').write(cr, uid, [order.id], {'state':state[1]}) if state[0] else True
+        return {'type': 'ir.actions.client', 'tag': 'reload',}
 
     def create(self, cr, uid, vals, context=None):
         if 'price_unit' in vals and vals['price_unit'] < 0:
@@ -341,6 +420,21 @@ class sale_order_line(osv.osv):
                 qty=qty, uom=uom, qty_uos=qty_uos, uos=uos, name=name,
                 partner_id=partner_id, lang=lang, update_tax=update_tax,
                 date_order=date_order, flag=True, context=context)
+
+    def product_id_change(self, cr, uid, ids, pricelist, product, qty=0,
+            uom=False, qty_uos=0, uos=False, name='', partner_id=False,
+            lang=False, update_tax=True, date_order=False, packaging=False, fiscal_position=False, flag=False, context=None):
+        """
+        keep unit_price from context, overriding changed price
+        """
+        result = super(sale_order_line, self).product_id_change(cr, uid, ids, pricelist, product,
+                  qty=qty, uom=uom, uos=uos, name=name, partner_id=partner_id,
+                  lang=lang, update_tax=update_tax, date_order=date_order, packaging=packaging,
+                  fiscal_position=fiscal_position, flag=flag, context=context)
+        if 'price_unit' in context:
+            if 'price_unit' in result['value']:
+                result['value']['price_unit'] = context['price_unit']
+	return result
 
 class sale_order_line_make_invoice(osv.osv_memory):
 

@@ -19,6 +19,54 @@
 from osv import osv, fields
 from openerp.tools.translate import _
 from openerp import SUPERUSER_ID
+from natuurpunt_tools import sql_wrapper
+
+def get_company_id(obj,cr,uid):
+    user = obj.browse(cr, uid, uid)
+    return user.company_id.id
+
+class res_partner(osv.osv):
+    _inherit = 'res.partner'
+
+    def name_search(self, cr, user, name, args=None, operator='ilike', context=None, limit=80):
+        """
+        Returns a list of tupples containing id, name, as internally it is called {def name_get}
+        result format: {[(id, name), (id, name), ...]}
+
+        @param cr: A database cursor
+        @param user: ID of the user currently logged in
+        @param name: name to search
+        @param args: other arguments
+        @param operator: default operator is 'ilike', it can be changed
+        @param context: context arguments, like lang, time zone
+        @param limit: Returns first 'n' ids of complete result, default is 80.
+
+        @return: Returns a list of tupples containing id and name
+        """               
+        ids = []
+        if context and 'offerte' in context:
+            sql_stat = "select distinct on (partner_id) id from sale_order where state in ('draft','sent')" + \
+                       " and company_id = {}".format(get_company_id(self.pool.get('res.users'),cr,user))
+            res = sql_wrapper(sql_stat)(cr)
+            if res:
+                quotation_ids = [x['id'] for x in res]
+                for quotation in self.pool.get('sale.order').browse(cr, user, quotation_ids, context=context or {}):
+                    if name.lower() in quotation.partner_id.name.lower():
+                        ids.append(quotation.partner_id.id)
+            return self.name_get(cr, user, ids, context=context)
+	elif context and 'natuurpunt_sale' in context:
+            sql_stat = "select distinct on (partner_id) id from sale_order where state not in ('draft','sent','cancel')" + \
+                       " and company_id = {}".format(get_company_id(self.pool.get('res.users'),cr,user))
+            res = sql_wrapper(sql_stat)(cr)
+            if res:
+                sale_ids = [x['id'] for x in res]
+                for sale in self.pool.get('sale.order').browse(cr, user, sale_ids, context=context or {}):
+                    if name.lower() in sale.partner_id.name.lower():
+                        ids.append(sale.partner_id.id)
+            return self.name_get(cr, user, ids, context=context)
+	else:
+            ids = self.search(cr, user, [('name',operator,name)]+ args, limit=limit, context=context)
+            return self.name_get(cr, user, ids, context=context)
 
 class sale_order(osv.osv):
     _inherit = 'sale.order'
