@@ -42,7 +42,10 @@ class res_partner(osv.osv):
         @param limit: Returns first 'n' ids of complete result, default is 80.
 
         @return: Returns a list of tupples containing id and name
-        """               
+        """
+        if context and not ( 'offerte' in context or 'natuurpunt_sale' in context ):
+            return super(res_partner,self).name_search(cr, user, name, args, operator=operator, context=context, limit=limit)
+
         ids = []
         if context and 'offerte' in context:
             sql_stat = "select distinct on (partner_id) id from sale_order where state in ('draft','sent')" + \
@@ -54,7 +57,7 @@ class res_partner(osv.osv):
                     if name.lower() in quotation.partner_id.name.lower():
                         ids.append(quotation.partner_id.id)
             return self.name_get(cr, user, ids, context=context)
-	elif context and 'natuurpunt_sale' in context:
+        elif context and 'natuurpunt_sale' in context:
             sql_stat = "select distinct on (partner_id) id from sale_order where state not in ('draft','sent','cancel')" + \
                        " and company_id = {}".format(get_company_id(self.pool.get('res.users'),cr,user))
             res = sql_wrapper(sql_stat)(cr)
@@ -63,9 +66,6 @@ class res_partner(osv.osv):
                 for sale in self.pool.get('sale.order').browse(cr, user, sale_ids, context=context or {}):
                     if name.lower() in sale.partner_id.name.lower():
                         ids.append(sale.partner_id.id)
-            return self.name_get(cr, user, ids, context=context)
-	else:
-            ids = self.search(cr, user, [('name',operator,name)]+ args, limit=limit, context=context)
             return self.name_get(cr, user, ids, context=context)
 
 class sale_order(osv.osv):
