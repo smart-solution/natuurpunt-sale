@@ -23,6 +23,7 @@ from openerp.osv import fields, osv
 from openerp.tools.translate import _
 import openerp.addons.decimal_precision as dp
 from openerp import netsvc
+import time
 from natuurpunt_tools import compose
 from functools import partial
 
@@ -214,6 +215,8 @@ class sale_order_add_line(osv.osv_memory):
         'state': 'draft',
         'product_uom' : _get_uom_id,
         'product_uom_qty': 1,
+        'uitvoering_jaar': lambda *a: time.strftime('%Y'),
+        'facturatie_jaar': lambda *a: time.strftime('%Y'),
     }
 
     def order_add_line(self, cr, uid, ids, context=None):
@@ -353,6 +356,11 @@ class sale_order_line(osv.osv):
               ('paid','Betaald')], 'Status', required=True, readonly=True,help=''),
          'price_subtotal': fields.function(_amount_line, string='Subtotal', digits_compute= dp.get_precision('Account')),
          'invoice_line_id': fields.many2one('account.invoice.line', 'Invoice Line'),
+    }
+
+    _defaults = {
+        'uitvoering_jaar': lambda *a: time.strftime('%Y'),
+        'facturatie_jaar': lambda *a: time.strftime('%Y'),
     }
 
     def action_force_close(self, cr, uid, ids, context=None):

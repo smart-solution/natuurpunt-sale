@@ -32,10 +32,12 @@ class sale_order_mail_compose_message(osv.TransientModel):
     _description = 'Sale order Email composition wizard'
 
     _columns = {
+        'order_id': fields.many2one('sale.order', string='sale order'),
         'customer_id': fields.many2one('res.partner', string='email to customer', required=True, ),
         'report_name': fields.char('report', help="sale order report attachment"),
         'report_size': fields.char('file size', help="sale order report attachment"),
         'report_data': fields.binary('binary report data'),
+        'include_att': fields.char('auto include attachments'),
         'store_id' : fields.char('store_id'),
         'json_object' : fields.char('json_object', help="additional emails"),
     }
@@ -52,6 +54,7 @@ class sale_order_mail_compose_message(osv.TransientModel):
 
         default_template_id = context.get('default_template_id',False)
         for sale_order in self.pool.get(model).browse(cr, uid, [res_id], context=context):
+            res['order_id'] = sale_order.id
             res['customer_id'] = sale_order.partner_id.id
             res['partner_id'] = sale_order.partner_id.id
             report_attachment = self.generate_report_attachment(cr, uid, sale_order.name, context=context)
@@ -59,6 +62,10 @@ class sale_order_mail_compose_message(osv.TransientModel):
                 res['report_name'] = report[0]
                 res['report_size'] = self.sizeof_fmt(len(report[1]))
                 res['report_data'] = report[1]
+            # display attachments that always need to be included in e-mail
+	    ir_att_ids = self.pool.get('sale.order.attachment').sale_order_attachments_for_email(cr,uid,sale_order.id,context=context)
+            res['include_att'] = ''.join(map(lambda t : ' / {} ( {} )'.format(t[0],self.sizeof_fmt(t[1])), \
+                self.pool.get('ir.attachment').alfresco_file_properties(cr, uid, ir_att_ids, context=context)))
 
         for user in self.pool.get('res.users').browse(cr, uid, [uid], context=context):
             res['email_from'] = user.email_work
@@ -118,6 +125,20 @@ class sale_order_mail_compose_message(osv.TransientModel):
                 ctx = dict(context)
                 ctx.update({'bypass_cmis':True})
                 attachment_ids.append(ir_attachment.create(cr, uid, attachment_data, context=ctx))
+
+                # get the attachments from alfresco that always need to be included in email
+                if wizard['include_att']:
+                    ir_att_ids = self.pool.get('sale.order.attachment').sale_order_attachments_for_email(cr,uid,wizard['order_id'].id,context=context)
+                    for filename,filedata in self.pool.get('ir.attachment').get_alfresco_files(cr, uid, ir_att_ids, context=context):
+                        attachment_data = {
+                            'name': filename,
+                            'datas_fname': filename,
+                            'db_datas': filedata,
+                            'res_model': 'mail.message',
+                            'res_id': mail.mail_message_id.id,
+                            'partner_id': recipient_ids[0],
+                        }
+                        attachment_ids.append(ir_attachment.create(cr, uid, attachment_data, context=ctx))
 
                 # get the external memory attachments 
                 if wizard['store_id']:

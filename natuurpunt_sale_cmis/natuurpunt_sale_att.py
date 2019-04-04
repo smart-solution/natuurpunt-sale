@@ -24,6 +24,7 @@ class ir_attachment_type(osv.osv):
 
     _columns = {
         'name': fields.char('Document type', size=128, required=True),
+        'email': fields.boolean('Include in e-mail'),
     }
 
 ir_attachment_type()
@@ -44,6 +45,27 @@ class sale_order_attachment(osv.osv):
                 string="URL",
                 store=False)
     }
+
+    def get_auto_email_attachments(self, cr, uid, order_id, context=None):
+        """
+        Return ids of sale.order.attachment that need to be automaticly included in e-mail message
+        """
+        att_type_ids = self.pool.get('ir.attachment.type').search(cr,uid,[('email','=',True)])
+        if att_type_ids:
+            domain = [('order_id','=',order_id),('doc_type_id','in',att_type_ids)]
+            return self.search(cr,uid,domain)
+        else:
+            return []
+
+    def sale_order_attachments_for_email(self, cr, uid, ids, context=None):
+        soa_ids = self.get_auto_email_attachments(cr, uid, ids)
+        if soa_ids:
+            ir_att_ids = []
+            for sale_order_attachment in self.browse(cr, uid, soa_ids, context=context):
+                ir_att_ids.append(sale_order_attachment.attachment_id.id)
+            return ir_att_ids
+        else:
+            return []
 
 sale_order_attachment()
 
