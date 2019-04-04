@@ -20,6 +20,7 @@
 						<div>
 							<field name="report_name" string="Attachment" readonly="True" class="oe_inline"/> (
 							<field name="report_size" nolabel="1" readonly="True" class="oe_inline"/> )
+                                                        <field name="include_att" nolabel="1" readonly="True" class="oe_inline"/>
 						</div>
 						<field name="store_id" string="Attachment" placeholder="store_id..." widget="natuurpunt_attachments" />
                     </group>
@@ -71,6 +72,7 @@
             <field name='arch' type='xml'>
 			<tree string="documenttype">
 				<field name="name"/>
+                                <field name="email"/>
 			</tree>
 		    </field>
         </record>
@@ -82,6 +84,7 @@
 				<form string="Documenttype">
 					<group colspan="2" col="2">
 						<field name="name"/>
+                                                <field name="email"/>
 					</group>
 				</form>
 		    </field>
