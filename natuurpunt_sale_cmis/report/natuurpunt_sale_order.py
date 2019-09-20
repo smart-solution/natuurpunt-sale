@@ -32,13 +32,19 @@ class order(report.natuurpunt_rml_parse):
             'show_discount':self._show_discount,
         })
 
-    def _show_discount(self, uid, context=None):
+    def _show_discount(self, uid, order_id, context=None):
         cr = self.cr
+        if order_id != 0:
+            order_has_discounts = self.pool.get('sale.order.line').search(cr, uid, [('order_id','=',order_id),('discount','>','0')])
+        else:
+            order_has_discounts = False
+
         try: 
             group_id = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'sale', 'group_discount_per_so_line')[1]
         except:
             return False
-        return group_id in [x.id for x in self.pool.get('res.users').browse(cr, uid, uid, context=context).groups_id]
+
+        return group_id in [x.id for x in self.pool.get('res.users').browse(cr, uid, uid, context=context).groups_id] and order_has_discounts
 
 report_sxw.report_sxw('report.natuurpunt.sale.order', 'sale.order', 'addons/natuurpunt_sale_cmis/report/natuurpunt_sale_order.rml', parser=order, header="external")
 
