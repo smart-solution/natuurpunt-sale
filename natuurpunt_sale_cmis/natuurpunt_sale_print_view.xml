@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<openerp>
+    <data>
+
+    <record id="print_quotation_feedback_view" model="ir.ui.view">
+      <field name="name">print.quotation.feedback.view</field>
+      <field name="model">print.quotation.feedback</field>
+      <field name="arch" type="xml">
+        <form string="Warning" version="7.0">
+          <field name="message" nolabel="1"/>
+          <footer>
+             <button name="print_quotation" string="Adrukken" type="object" class="oe_highlight"/>
+          </footer>
+        </form>
+      </field>
+    </record>
+
+    <record id="action_print_quotation_feedback" model="ir.actions.act_window">
+        <field name="name">print quotation Feedback</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">print.quotation.feedback</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="print_quotation_feedback_view" />
+    </record>
+        
+  </data>
+</openerp>

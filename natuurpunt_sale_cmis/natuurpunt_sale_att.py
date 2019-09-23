@@ -73,8 +73,32 @@ class sale_order(osv.osv):
 
         _inherit = "sale.order"
 
+        def _sale_order_with_email_attachments(self, cr, uid, ids, name, args, context=None):
+            res = {}
+            for id in ids:
+                email_attachments = False
+                soa_ids = self.pool.get('sale.order.attachment').search(cr,uid,[('order_id','=',id)])
+                for soa in self.pool.get('sale.order.attachment').browse(cr,uid,soa_ids):
+                    email_attachments = email_attachments or soa.doc_type_id.email
+                res[id] = email_attachments
+            return res   
+
+        def _get_sale_order(self, cr, uid, ids, context=None):
+            soa_obj = self.pool.get('sale.order.attachment')
+            data_soa = soa_obj.browse(cr, uid, ids, context=context)
+            list_sale_order = []
+            for data in data_soa:
+                list_sale_order.append(data.order_id.id)
+            return list_sale_order
+
         _columns = {
             'attachment_ids': fields.one2many('sale.order.attachment', 'order_id', 'sale order attachment'),
+            'email_attachments': fields.function(
+                    _sale_order_with_email_attachments,
+                    string = 'email attachments', type = 'boolean',
+                    store = {
+                        'sale.order.attachment': (_get_sale_order, ['doc_type_id'], 10),
+                    }, help="True if there are email attachments."),
         }
 
         def copy(self, cr, uid, ids, default=None, context=None):
