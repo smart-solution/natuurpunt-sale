@@ -18,6 +18,22 @@
 
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
+import logging
+
+_logger = logging.getLogger(__name__)
+
+
+REPORT_TYPES = [('factuur','account.invoice'),
+                ('vordering','account.vordering'),
+                ('kostennota','account.expense')]
+
+REPORT_THIRDPAYER_EXTENSION = [('factuur','.thirdpayer'),
+                               ('vordering',''),
+                               ('kostennota','')]
+
+LAYOUTS_FULL = [('factuur','Factuur'),('vordering','Vordering'),('kostennota','Kostennota'),]
+LAYOUTS_SENT = [('vordering','Vordering'),('kostennota','Kostennota'),]
+
 
 class ir_attachment_type(osv.osv):
     _name = 'ir.attachment.type'
@@ -121,14 +137,95 @@ class sale_order_line_make_invoice(osv.osv_memory):
         res['order_id'] = order.id
         return res
 
+class print_invoice_wizard(osv.osv_memory):
+ 
+    _inherit = "print.invoice.wizard"
+
+    _columns = {
+        'order_id': fields.many2one('sale.order', 'Sale order', select=True),
+        'sale_order_attachment_ids': fields.related('order_id','attachment_ids', type='one2many', relation='sale.order.attachment', string='sale order attachment'),
+        'sale_order_email_attachments': fields.boolean(string='show email attachments'),
+    }
+
+    def init_print_crm_invoice_dialog(self, cr, uid, ids, sale_order_id, sale_order_email_attachments, \
+                                      use_third_payer_address=False, name=None, third_payer_id=0, context=None):
+        id = self.create(cr, uid, {'use_third_payer_address': use_third_payer_address,
+                                   'name': name,
+                                   'third_payer_id':third_payer_id,
+                                   'order_id': sale_order_id,
+                                   'sale_order_email_attachments': sale_order_email_attachments})
+        self.account_invoice_ids = ids
+        res = self.show_print_crm_invoice_dialog(cr, uid, id, context)
+        return res
+
 class account_invoice(osv.osv):
 
-        _inherit = "account.invoice"
+    _inherit = "account.invoice"
 
-        _columns = {
-            'order_id': fields.many2one('sale.order', 'Sale order', select=True),
-            'sale_order_attachment_ids': fields.related('order_id','attachment_ids', type='one2many', relation='sale.order.attachment', string='sale order attachment'),
+    _columns = {
+        'order_id': fields.many2one('sale.order', 'Sale order', select=True),
+        'sale_order_attachment_ids': fields.related('order_id','attachment_ids', type='one2many', relation='sale.order.attachment', string='sale order attachment'),
+        'sale_order_email_attachments': fields.related('order_id','email_attachments', type='boolean', relation='sale.order', string='email attachments'),
+    }
+
+    def invoice_print(self, cr, uid, ids, context=None):
+        '''
+        override/replace version of natuurpunt_print_crm_invoice/wizard/crm_account_invoice.py
+        This function prints the invoice and mark it as sent, so that we can see more easily the next step of the workflow
+        '''
+        values = {}
+        if context is None:
+            context = {}
+        assert len(ids) == 1, 'This option should only be used for a single id at a time.'
+
+        _logger.info("Printing invoice ids %s", ids)
+        data = self.read(cr, uid, ids)[0]
+        print_invoice_wizard_obj = self.pool.get('print.invoice.wizard')
+
+        #process print options from wizard
+        if 'print_invoice_wizard' in context:
+            wiz_ids = context.get('print_invoice_wizard', False)
+            wiz_data = print_invoice_wizard_obj.read(cr, uid, wiz_ids)[0]
+            data['name'] = wiz_data['name']
+            values['name'] = wiz_data['name']
+            values['sent'] = True if wiz_data['layout'] == 'factuur' else False
+            # convert layout to report
+            report_name = [t[1]for t in REPORT_TYPES if wiz_data['layout'] == t[0]][0]
+            # use thirdpayer version if option is selected and available for this layout
+            if wiz_data['use_third_payer_address']:
+                report_name += [t[1]for t in REPORT_THIRDPAYER_EXTENSION if wiz_data['layout'] == t[0]][0]
+        else:
+            # print crm invoice wizard
+            if data['type'] == 'out_invoice':
+                third_payer_id = data['third_payer_id'][0] if data['third_payer_id'] else False
+                order_id = data['order_id'][0] if data['order_id'] else False
+                sale_order_email_attachments = data['sale_order_email_attachments'] if data['sale_order_email_attachments'] else False  
+                #print_wizard = 'print.invoice.wizard' if data['sent'] else 'print.invoice.wizard'
+                return print_invoice_wizard_obj.init_print_crm_invoice_dialog(cr, uid, ids, order_id, 
+                                                                              sale_order_email_attachments,
+                                                                              use_third_payer_address=False,
+                                                                              name=data['name'],
+                                                                              third_payer_id=third_payer_id)
+            else:
+                values = {'sent':True}
+                # default print logic without option wizard
+                report_name = 'account.invoice'
+
+        if values:
+            self.write(cr, uid, ids, values, context=context)
+
+        datas = {
+             'ids': ids,
+             'model': 'account.invoice',
+             'form': data
         }
+        return {
+            'type': 'ir.actions.report.xml',
+            'report_name': report_name,
+            'datas': datas,
+            'nodestroy' : True
+        }
+
 
 class ir_attachment(osv.osv):
 

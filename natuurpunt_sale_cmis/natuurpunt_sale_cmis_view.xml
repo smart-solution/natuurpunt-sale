@@ -34,6 +34,17 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="email_compose_message_wizard_np_account_sale_form">
+            <field name="name">email.compose.message.wizard.np.account.sale.form</field>
+            <field name="model">account.invoice.mail.compose.message</field>
+            <field name="inherit_id" ref="natuurpunt_account_mail.email_compose_message_wizard_np_account_form"/>
+            <field name="arch" type="xml">
+                <field name="report_size" position="after">
+                   <field name="include_att" nolabel="1" readonly="True" class="oe_inline"/>
+                </field>
+            </field>
+        </record>
+
         <record id="view_order_form_np_attachment" model="ir.ui.view">
             <field name='name'>view.sale.order.np.attachment.form</field>
             <field name='model'>sale.order</field>
