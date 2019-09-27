@@ -41,6 +41,7 @@
             <field name="arch" type="xml">
                 <field name="report_size" position="after">
                    <field name="include_att" nolabel="1" readonly="True" class="oe_inline"/>
+                   <field name="order_id" readonly="True" hidden="True"/>
                 </field>
             </field>
         </record>

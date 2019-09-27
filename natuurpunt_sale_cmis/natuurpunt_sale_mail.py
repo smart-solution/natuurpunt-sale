@@ -30,6 +30,7 @@ class account_invoice_mail_compose_message(osv.TransientModel):
     _inherit = 'account.invoice.mail.compose.message'
 
     _columns = {
+        'order_id': fields.many2one('sale.order', string='sale order'),
         'include_att': fields.char('auto include attachments'),
     }
 
