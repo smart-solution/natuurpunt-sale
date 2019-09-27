@@ -62,7 +62,7 @@ class account_invoice_mail_compose_message(osv.TransientModel):
                     'res_id': message_id,
                     'partner_id': recipient_id,
                 }
-                attachment_ids.append(ir_attachment.create(cr, uid, attachment_data, context=ctx))
+                attachment_ids.append(ir_attachment.create(cr, uid, attachment_data, context=context))
         return attachment_ids 
 
 class sale_order_mail_compose_message(osv.TransientModel):
