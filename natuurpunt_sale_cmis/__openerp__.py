@@ -28,9 +28,15 @@
     - via cmis alfresco
     - via report
 """,
-    "depends" : ["web","natuurpunt_account","natuurpunt_purchase_mail","natuurpunt_sale"],
+    "depends" : ["web",
+                 "natuurpunt_account",
+                 "natuurpunt_purchase_mail",
+                 "natuurpunt_account_mail",
+                 "natuurpunt_sale",
+                 "natuurpunt_print_crm_invoice"],
     "data": ["natuurpunt_sale_cmis_view.xml",
              "natuurpunt_sale_report.xml",
+             "natuurpunt_sale_print_view.xml",
              "security/ir.model.access.csv"],
     'js': ['static/src/js/natuurpunt_sale_cmis.js'],
     'qweb': ['static/src/xml/natuurpunt_sale_cmis_template.xml'],

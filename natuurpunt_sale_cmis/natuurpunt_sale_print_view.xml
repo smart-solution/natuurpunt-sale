@@ -1,0 +1,50 @@
+<?xml version="1.0" ?>
+<openerp>
+    <data>
+
+    <record id="print_quotation_feedback_view" model="ir.ui.view">
+      <field name="name">print.quotation.feedback.view</field>
+      <field name="model">print.quotation.feedback</field>
+      <field name="arch" type="xml">
+        <form string="Warning" version="7.0">
+          <field name="message" nolabel="1"/>
+          <footer>
+             <button name="print_quotation" string="Adrukken" type="object" class="oe_highlight"/>
+          </footer>
+        </form>
+      </field>
+    </record>
+
+    <record id="action_print_quotation_feedback" model="ir.actions.act_window">
+        <field name="name">print quotation Feedback</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">print.quotation.feedback</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="print_quotation_feedback_view" />
+    </record>
+
+    <record id="print_crm_invoice_view_sale_order" model="ir.ui.view">
+      <field name="name">print.invoice.sale.order.wizard</field>
+      <field name="model">print.invoice.wizard</field>
+      <field name="priority">1</field>
+      <field name="inherit_id" ref="natuurpunt_print_crm_invoice.print_crm_invoice_view" />
+      <field name="arch" type="xml">
+        <field name="name" position="after"> 
+	    <field name="sale_order_email_attachments" invisible="1"/>
+            <group name="Documenten" string="Extra documenten nodig bij afdruk..." attrs="{'invisible':[('sale_order_email_attachments','=',False)]}">
+                <field name="sale_order_attachment_ids" colspan="4" nolabel="1" options="{'always_reload': true}">
+                     <tree string="bijlage" editable="bottom" create="false" delete="false">
+                         <field name="name" readonly="1"/>
+                         <field name="doc_type_id"/>
+                         <field name="url" invisible="1"/>
+                     </tree>
+                </field>
+            </group>
+       </field>
+      </field>
+    </record>
+        
+  </data>
+</openerp>

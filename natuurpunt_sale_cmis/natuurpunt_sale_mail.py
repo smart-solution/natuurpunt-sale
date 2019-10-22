@@ -26,6 +26,45 @@ from openerp import netsvc
 
 _logger = logging.getLogger('natuurpunt_sale_mail')
 
+class account_invoice_mail_compose_message(osv.TransientModel):
+    _inherit = 'account.invoice.mail.compose.message'
+
+    _columns = {
+        'order_id': fields.many2one('sale.order', string='sale order'),
+        'include_att': fields.char('auto include attachments'),
+    }
+
+    def get_record_data(self, cr, uid, model, res_id, context=None):
+        res = super(account_invoice_mail_compose_message, self).get_record_data(cr, uid, model, res_id, context=context)
+        # display attachments that always need to be included in e-mail
+        for account_invoice in self.pool.get(model).browse(cr, uid, [res_id], context=context):
+            res['order_id'] = account_invoice.order_id.id if account_invoice.order_id else False
+            if res['order_id']:
+                ir_att_ids = self.pool.get('sale.order.attachment').sale_order_attachments_for_email(cr,uid,res['order_id'],context=context)
+                res['include_att'] = ''.join(map(lambda t : ' / {} {}'.format(t[0],self.sizeof_fmt(t[1])), \
+                    self.pool.get('ir.attachment').alfresco_file_properties(cr, uid, ir_att_ids, context=context)))    
+            else:
+                res['include_att'] = False
+        return res
+
+    def create_attachments(self, cr, uid, wizard, recipient_id, message_id, context=None):
+        ir_attachment = self.pool.get('ir.attachment')
+        attachment_ids = super(account_invoice_mail_compose_message,self).create_attachments(cr,uid,wizard,recipient_id,message_id,context=context)
+        # get the attachments from alfresco that always need to be included in email
+        if wizard['include_att']:
+            ir_att_ids = self.pool.get('sale.order.attachment').sale_order_attachments_for_email(cr,uid,wizard['order_id'].id,context=context)
+            for filename,filedata in self.pool.get('ir.attachment').get_alfresco_files(cr, uid, ir_att_ids, context=context):
+                attachment_data = {
+                    'name': filename,
+                    'datas_fname': filename,
+                    'db_datas': filedata,
+                    'res_model': 'mail.message',
+                    'res_id': message_id,
+                    'partner_id': recipient_id,
+                }
+                attachment_ids.append(ir_attachment.create(cr, uid, attachment_data, context=context))
+        return attachment_ids 
+
 class sale_order_mail_compose_message(osv.TransientModel):
     _name = 'sale.order.mail.compose.message'
     _inherit = 'mail.compose.message'
@@ -111,6 +150,10 @@ class sale_order_mail_compose_message(osv.TransientModel):
                 msg_id = mail_mail.create(cr, uid, values, context=context)
                 mail = mail_mail.browse(cr, uid, msg_id, context=context)
 
+                context.pop('default_type', None)
+                ctx = dict(context)
+                ctx.update({'bypass_cmis':True})
+
                 # convert report to attachment
                 attachment_ids = []
                 attachment_data = {
@@ -121,9 +164,6 @@ class sale_order_mail_compose_message(osv.TransientModel):
                     'res_id': mail.mail_message_id.id,
                     'partner_id': recipient_ids[0],
                 }
-                context.pop('default_type', None)
-                ctx = dict(context)
-                ctx.update({'bypass_cmis':True})
                 attachment_ids.append(ir_attachment.create(cr, uid, attachment_data, context=ctx))
 
                 # get the attachments from alfresco that always need to be included in email

@@ -23,18 +23,27 @@ from openerp import netsvc
 class sale_order(osv.osv):
     _inherit = "sale.order"
 
+    def create_print_quotation(self, cr, uid, ids, context=None):
+        wf_service = netsvc.LocalService("workflow")
+        wf_service.trg_validate(uid, 'sale.order', ids[0], 'quotation_sent', cr)
+        datas = {
+          'model': 'sale.order',
+          'ids': ids,
+          'form': self.read(cr, uid, ids[0], context=context),
+        }
+        return {'type': 'ir.actions.report.xml', 'report_name': 'natuurpunt.sale.order', 'datas': datas, 'nodestroy': True}  
+
     def print_quotation(self, cr, uid, ids, context=None):
         '''
         This function prints the sales order and mark it as sent, so that we can see more easily the next step of the workflow
         '''
         assert len(ids) == 1, 'This option should only be used for a single id at a time'
-        wf_service = netsvc.LocalService("workflow")
-        wf_service.trg_validate(uid, 'sale.order', ids[0], 'quotation_sent', cr)
-        datas = {
-                 'model': 'sale.order',
-                 'ids': ids,
-                 'form': self.read(cr, uid, ids[0], context=context),
-        }
-        return {'type': 'ir.actions.report.xml', 'report_name': 'natuurpunt.sale.order', 'datas': datas, 'nodestroy': True}
+        report = self.create_print_quotation(cr, uid, ids, context=context)
+        for so in self.browse(cr,uid,ids):
+            if so.email_attachments:
+                feedback = 'Verkoop order met extra bijlagen!'
+                return self.pool.get('print.quotation.feedback').info(cr, uid, title='Afdrukken', message=feedback, sale_order_id=ids[0])
+            else:
+                return self.create_print_quotation(cr, uid, ids, context=context)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

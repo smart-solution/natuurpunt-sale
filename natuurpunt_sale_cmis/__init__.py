@@ -20,3 +20,4 @@ import natuurpunt_sale_mail
 import natuurpunt_sale_att
 import natuurpunt_sale_print
 import report
+import wizard
