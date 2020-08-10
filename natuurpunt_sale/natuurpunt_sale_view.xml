@@ -113,6 +113,9 @@
                 <button name="action_cancel" position="before">
                     <button name="in_progress" string="In uitvoering" states="progress" type="object" class="oe_highlight"/>
                 </button>
+                <field name='message_follower_ids' position='attributes'>
+                        <attribute name="invisible">1</attribute>
+                </field>
 		<xpath expr="//button[@string='Create Invoice']" position="attributes">
 			<attribute name="states"/>
                         <attribute name="invisible">1</attribute>
