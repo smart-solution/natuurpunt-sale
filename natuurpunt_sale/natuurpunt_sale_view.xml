@@ -113,6 +113,9 @@
                 <button name="action_cancel" position="before">
                     <button name="in_progress" string="In uitvoering" states="progress" type="object" class="oe_highlight"/>
                 </button>
+                <field name='message_follower_ids' position='attributes'>
+                        <attribute name="invisible">1</attribute>
+                </field>
 		<xpath expr="//button[@string='Create Invoice']" position="attributes">
 			<attribute name="states"/>
                         <attribute name="invisible">1</attribute>
@@ -314,6 +317,10 @@
             <field name="amount_untaxed" sum="Totaalbedrag excl. btw"/>
           </field>
         </field>
+      </record>
+
+      <record id="sale.action_quotations" model="ir.actions.act_window">
+          <field name="context">{"search_default_draft": 1}</field>
       </record>
 
     </data>

@@ -154,7 +154,12 @@ class sale_order(osv.osv):
         res = super(sale_order, self).copy(cr, uid, id, default=default, context=context)
         so = self.browse(cr, uid, res)
         line_ids = [l.id for l in so.order_line]
-        self.pool.get('sale.order.line').write(cr, uid, line_ids, {'delivered_flag':False,'delivered_qty':0})
+        default_line = {}
+        default_line['delivered_flag'] = False
+        default_line['delivered_qty'] = 0
+        default_line['delivered_text'] = False
+        default_line['invoice_line_id'] = False
+        self.pool.get('sale.order.line').write(cr, uid, line_ids, default_line)
         return res
 
     def test_state(self, cr, uid, ids, mode, *args):
